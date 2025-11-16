@@ -27,4 +27,13 @@ LuCI JS Mini Disk Manager. Interface for simple disk/partition management from O
 
 > Disk Manager / Menedżer dysków:
 
-![](https://github.com/4IceG/Personal_data/blob/master/zrzuty/mdmanager/mdm_en.png?raw=true)
+![](https://github.com/4IceG/Personal_data/blob/master/zrzuty/mdmanager/mdm1.png?raw=true)
+
+![](https://github.com/4IceG/Personal_data/blob/master/zrzuty/mdmanager/mdm2.png?raw=true)
+
+![](https://github.com/4IceG/Personal_data/blob/master/zrzuty/mdmanager/mdm3.png?raw=true)
+
+![](https://github.com/4IceG/Personal_data/blob/master/zrzuty/mdmanager/mdm4.png?raw=true)
+
+![](https://github.com/4IceG/Personal_data/blob/master/zrzuty/mdmanager/mdm5.png?raw=true)
+
