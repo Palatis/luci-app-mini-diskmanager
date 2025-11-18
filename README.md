@@ -17,7 +17,7 @@ LuCI JS Mini Disk Manager. Interface for simple disk/partition management from O
 > luci-base, block-mount, fdisk, parted, lsblk, e2fsprogs, ntfs-3g, dosfstools, swap-utils
 
 > [!IMPORTANT]
-> Supported file systems:
+> ***Supported file systems:***
 > - Ext2/Ext3/Ext4
 > - F2FS 
 > - Swap
