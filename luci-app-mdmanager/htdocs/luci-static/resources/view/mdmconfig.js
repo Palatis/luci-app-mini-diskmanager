@@ -178,7 +178,8 @@ return view.extend({
                 ],
                 'exFAT': [
                     { name: 'exfat-mkfs', label: 'exfat-mkfs' },
-                    { name: 'kmod-fs-exfat', label: 'kmod-fs-exfat' }               
+                    { name: 'kmod-fs-exfat', label: 'kmod-fs-exfat' },  
+                    { name: 'exfat-utils', label: 'exfat-utils' }
                 ]
             });
         }, this);

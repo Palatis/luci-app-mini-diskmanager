@@ -470,9 +470,9 @@ return view.extend({
                 fsSet.add('exfat');
             }
 
-	    if (has('swap-utils')) {
-    		fsSet.add('swap');
-	    }
+	        if (has('swap-utils')) {
+        		fsSet.add('swap');
+	        }
 
             this.supportedFs = Array.from(fsSet);
             return this.supportedFs;
@@ -1134,7 +1134,7 @@ return view.extend({
         ]);
 
         let contentArea = E('div', {'id': 'disk-content-area'}, [
-            E('div', {'class': 'alert alert-info'}, _(''))
+            E('div', {'class': 'alert alert-info'}, _('Please select a disk to view its partitions'))
         ]);
 
         return E([
@@ -2837,7 +2837,8 @@ return view.extend({
             let contentArea = document.getElementById('disk-content-area');
             if (contentArea) {
                 contentArea.innerHTML = '';
-                contentArea.appendChild(E('div', {'class': 'alert alert-info'}, 
+                contentArea.appendChild(
+                E('div', {'class': 'alert alert-information'}, 
                     _('Please select a disk to view its partitions')));
             }
             this.updateActionButtons();
