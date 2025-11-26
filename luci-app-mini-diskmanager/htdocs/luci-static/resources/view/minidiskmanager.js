@@ -219,9 +219,17 @@ document.head.append(E('style', {'type': 'text/css'},
 	background-color: var(--partition-color-f2fs);
 	color: #fff;
 }
-.partition-segment.unallocated { 
-	background-color: var(--partition-color-unallocated);
-	color: var(--text-color-secondary);
+.partition-segment.free .partition-label,
+.partition-segment.unallocated .partition-label,
+.partition-segment.free .partition-size,
+.partition-segment.unallocated .partition-size {
+    background-color: var(--partition-color-unallocated);
+    font-weight: 600;
+}
+.partition-segment.free,
+.partition-segment.unallocated {
+    color: #fff;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.7);
 }
 
 .partition-label {
@@ -691,19 +699,112 @@ return view.extend({
     },
 
     getDiskTemperature: function(device) {
-        return L.resolveDefault(fs.exec('/usr/sbin/smartctl', ['-A', '/dev/' + device]), null)
-            .then(res => {
-                if (res && res.code === 0) {
-                    let match = res.stdout.match(/Temperature.*:\s*(\d+)/i) ||
-                        res.stdout.match(/194\s+Temperature.*\s+(\d+)/i) ||
-                        res.stdout.match(/190\s+Airflow.*Temperature.*\s+(\d+)/i);
-                    if (match && match[1]) {
-                        return match[1] + '°C';
+    var devicePath = '/dev/' + device;
+    var runSmart = function(args) {
+        return L.resolveDefault(fs.exec('/usr/sbin/smartctl', args), null);
+    };
+
+    var attempts = [
+        ['--json=c', '-A', devicePath],
+        ['--json=c', '-A', '-d', 'sat', devicePath]
+    ];
+
+    var extractFromJson = function(jsonText) {
+        if (!jsonText) return null;
+        try {
+            var obj = (typeof jsonText === 'string') ? JSON.parse(jsonText) : jsonText;
+
+            if (obj.temperature) {
+                if (typeof obj.temperature === 'number') return obj.temperature + ' °C';
+                if (typeof obj.temperature === 'object' && obj.temperature.current != null)
+                    return String(obj.temperature.current) + ' °C';
+                if (typeof obj.temperature === 'string') {
+                    var m = obj.temperature.match(/(\d{1,3})/);
+                    if (m) return m[1] + ' °C';
+                }
+            }
+            if (obj['temperature.current'] || obj['Temperature'] || obj['temp']) {
+                var v = obj['temperature.current'] || obj['Temperature'] || obj['temp'];
+                var mv = null;
+                if (typeof v === 'number') mv = v;
+                if (typeof v === 'string') {
+                    var mm = String(v).match(/(\d{1,3})/);
+                    if (mm) mv = mm[1];
+                }
+                if (mv != null) return String(mv) + ' °C';
+            }
+
+            if (obj['nvme_smart_health'] && obj['nvme_smart_health'].temperature != null) {
+                return String(obj['nvme_smart_health'].temperature) + ' °C';
+            }
+            if (obj['nvme_smart_health']) {
+                var nv = obj['nvme_smart_health'];
+                if (nv.temperature != null) return String(nv.temperature) + ' °C';
+            }
+
+            if (obj.ata_smart_attributes && Array.isArray(obj.ata_smart_attributes.table)) {
+                for (var i = 0; i < obj.ata_smart_attributes.table.length; i++) {
+                    var attr = obj.ata_smart_attributes.table[i];
+                    if (!attr) continue;
+                    if (attr.id === 194 || (attr.name && /temp/i.test(attr.name))) {
+                        if (attr.raw) {
+                            if (typeof attr.raw === 'object' && attr.raw.value != null) return String(attr.raw.value) + ' °C';
+                            if (typeof attr.raw === 'string') {
+                                var mm = attr.raw.match(/(\d{1,3})/);
+                                if (mm) return mm[1] + ' °C';
+                            }
+                        }
+                        if (attr.value != null) return String(attr.value) + ' °C';
+                        if (attr.raw && attr.raw['value'] != null) return String(attr.raw['value']) + ' °C';
                     }
                 }
-                return null;
-            }).catch(() => null);
-    },
+            }
+
+            if (obj.smart_status && obj.smart_status.temperature != null) {
+                return String(obj.smart_status.temperature) + ' °C';
+            }
+
+            var txt = JSON.stringify(obj);
+            var m = txt.match(/"temperature"\s*[:=]\s*(\d{1,3})/i) ||
+                    txt.match(/"temp"\s*[:=]\s*(\d{1,3})/i) ||
+                    txt.match(/\bTemperature\b[^0-9\n\r]{0,6}[:=]?\s*(\d{1,3})/i);
+            if (m && m[1]) return m[1] + ' °C';
+        } catch (e) {
+            // return null
+            return null;
+        }
+        return null;
+    };
+
+    var sequence = Promise.resolve(null);
+    for (var ai = 0; ai < attempts.length; ai++) {
+        (function(args) {
+            sequence = sequence.then(function(found) {
+                if (found) return found;
+                return runSmart(args).then(function(res) {
+                    if (!res || res.code !== 0) return null;
+
+                    var fromJson = extractFromJson(res.stdout);
+                    if (fromJson) return fromJson;
+
+                    var out = res.stdout || '';
+                    var rx1 = out.match(/(?:Current Drive Temperature|Temperature|Drive Temperature|Temp)[^\\d\\n\\r]{0,6}([0-9]{1,3})/i);
+                    if (rx1 && rx1[1]) return rx1[1] + ' °C';
+
+                    var rx2 = out.match(/([0-9]{1,3})\s*°\s*C/i);
+                    if (rx2 && rx2[1]) return rx2[1] + ' °C';
+
+                    var rx3 = out.match(/:?\s*([\d]{1,3})\s+C\b/);
+                    if (rx3 && rx3[1]) return rx3[1] + ' °C';
+
+                    return null;
+                }).catch(function() { return null; });
+            });
+        })(attempts[ai]);
+    }
+
+    return sequence.catch(function() { return null; });
+},
 
     getSmartStatus: function(device) {
         return L.resolveDefault(fs.exec('/usr/sbin/smartctl', ['-H', '/dev/' + device]), null)
