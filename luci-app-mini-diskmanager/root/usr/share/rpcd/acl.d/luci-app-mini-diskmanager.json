@@ -61,7 +61,8 @@
 					"create_partition",
 					"delete_partition",
 					"format_partition",
-					"resize_partition"
+					"resize_partition",
+					"wipe_disk"
 				]
 			},
 			"cgi-io": ["exec"],

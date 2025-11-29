@@ -633,3 +633,72 @@ msgstr "Нераспределённое место"
 
 msgid "Expand Ext2/Ext3/Ext4"
 msgstr "Расширить Ext2/Ext3/Ext4"
+
+msgid "Wipe"
+msgstr "Очистить"
+
+msgid "Select all partitions for wiping"
+msgstr "Выбрать все разделы для очистки"
+
+msgid "Please enable wipe mode first"
+msgstr "Сначала включите режим стирания"
+
+msgid "Cannot wipe disk with mounted partitions. Please unmount all partitions first."
+msgstr "Невозможно стереть диск с подключёнными разделами. Сначала отключите все разделы."
+
+msgid "Wipe Disk"
+msgstr "Стереть диск"
+
+msgid "WARNING"
+msgstr "ПРЕДУПРЕЖДЕНИЕ"
+
+msgid "This will completely erase the partition table and all data on /dev/%s!"
+msgstr "Это полностью удалит таблицу разделов и все данные на /dev/%s!"
+
+msgid "All partitions will be deleted and the disk will be unallocated."
+msgstr "Все разделы будут удалены, и диск станет нераспределённым."
+
+msgid "THIS OPERATION CANNOT BE UNDONE!"
+msgstr "ЭТУ ОПЕРАЦИЮ НЕВОЗМОЖНО ОТМЕНИТЬ!"
+
+msgid "Number of partitions to be deleted: %d"
+msgstr "Количество разделов для удаления: %d"
+
+msgid "Are you absolutely sure you want to continue?"
+msgstr "Вы абсолютно уверены, что хотите продолжить?"
+
+msgid "Wiping disk partition table..."
+msgstr "Очистка таблицы разделов диска..."
+
+msgid "Disk partition table has been successfully erased"
+msgstr "Таблица разделов диска успешно удалена"
+
+msgid "Failed to wipe disk"
+msgstr "Не удалось стереть диск"
+
+msgid "Failed to start disk wipe"
+msgstr "Не удалось начать стирание диска"
+
+msgid "Failed to wipe disk: "
+msgstr "Не удалось стереть диск: "
+
+msgid "Disk Wipe Support"
+msgstr "Поддержка стирания диска"
+
+msgid "Packages required to support disk wiping functionality (clearing partition table)."
+msgstr "Пакеты, необходимые для поддержки функции очистки диска (очистка таблицы разделов)."
+
+msgid "Check Disk Wipe packages"
+msgstr "Проверить пакеты очистки диска"
+
+msgid "Disk Wipe"
+msgstr "Стирание диска"
+
+msgid "dd from BusyBox"
+msgstr "dd из BusyBox"
+
+msgid "Disk Wipe (dd command)"
+msgstr "Стирание диска (команда dd)"
+
+msgid "alternative"
+msgstr "альтернатива"

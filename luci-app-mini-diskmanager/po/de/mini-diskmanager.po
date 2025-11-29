@@ -502,9 +502,6 @@ msgstr "Pakete und Treiber"
 msgid "Mini Disk Manager log"
 msgstr "Mini Disk Manager-Protokoll"
 
-msgid "Mini Disk Manager Log"
-msgstr "Mini Disk Manager-Protokoll"
-
 msgid "Packages required to support various file systems."
 msgstr "Pakete, die zur Unterstützung verschiedener Dateisysteme erforderlich sind."
 
@@ -633,3 +630,78 @@ msgstr "Nicht zugewiesener Speicherplatz"
 
 msgid "Expand Ext2/Ext3/Ext4"
 msgstr "Ext2/Ext3/Ext4 erweitern"
+
+msgid "Wipe"
+msgstr "Löschen"
+
+msgid "Select all partitions for wiping"
+msgstr "Alle Partitionen zum Löschen auswählen"
+
+msgid "Please enable wipe mode first"
+msgstr "Bitte aktivieren Sie zuerst den Löschmodus"
+
+msgid "Cannot wipe disk with mounted partitions. Please unmount all partitions first."
+msgstr "Festplatte mit eingehängten Partitionen kann nicht gelöscht werden. Bitte hängen Sie zuerst alle Partitionen aus."
+
+msgid "Wipe Disk"
+msgstr "Festplatte löschen"
+
+msgid "WARNING"
+msgstr "WARNUNG"
+
+msgid "This will completely erase the partition table and all data on /dev/%s!"
+msgstr "Dies wird die Partitionstabelle und alle Daten auf /dev/%s vollständig löschen!"
+
+msgid "All partitions will be deleted and the disk will be unallocated."
+msgstr "Alle Partitionen werden gelöscht und die Festplatte wird nicht zugewiesen."
+
+msgid "THIS OPERATION CANNOT BE UNDONE!"
+msgstr "DIESER VORGANG KANN NICHT RÜCKGÄNGIG GEMACHT WERDEN!"
+
+msgid "Number of partitions to be deleted: %d"
+msgstr "Anzahl der zu löschenden Partitionen: %d"
+
+msgid "Are you absolutely sure you want to continue?"
+msgstr "Sind Sie absolut sicher, dass Sie fortfahren möchten?"
+
+msgid "Wiping disk partition table..."
+msgstr "Lösche Festplatten-Partitionstabelle..."
+
+msgid "Disk partition table has been successfully erased"
+msgstr "Die Partitionstabelle der Festplatte wurde erfolgreich gelöscht"
+
+msgid "Failed to wipe disk"
+msgstr "Festplatte konnte nicht gelöscht werden"
+
+msgid "Failed to start disk wipe"
+msgstr "Löschen der Festplatte konnte nicht gestartet werden"
+
+msgid "Failed to wipe disk: "
+msgstr "Festplatte konnte nicht gelöscht werden: "
+
+msgid "Disk Wipe Support"
+msgstr "Unterstützung für Festplattenlöschung"
+
+msgid "Packages required to support disk wiping functionality (clearing partition table)."
+msgstr "Pakete, die zur Unterstützung der Festplattenlöschfunktion erforderlich sind (Löschen der Partitionstabelle)."
+
+msgid "Check Disk Wipe packages"
+msgstr "Festplattenlösch-Pakete überprüfen"
+
+msgid "Disk Wipe"
+msgstr "Festplatte löschen"
+
+msgid "dd from BusyBox"
+msgstr "dd von BusyBox"
+
+msgid "Disk Wipe (dd command)"
+msgstr "Festplatte löschen (dd-Befehl)"
+
+msgid "Log file cleared successfully"
+msgstr "Protokolldatei erfolgreich gelöscht"
+
+msgid "Unable to clear the file"
+msgstr "Datei konnte nicht gelöscht werden"
+
+msgid "alternative"
+msgstr "Alternative"

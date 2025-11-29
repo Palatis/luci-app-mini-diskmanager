@@ -344,10 +344,10 @@ msgid "Unable to read log file"
 msgstr "Không thể đọc tệp nhật ký"
 
 msgid "Log file cleared successfully"
-msgstr "Xóa tệp nhật ký thành công"
+msgstr "Xóa file nhật ký thành công"
 
 msgid "Unable to clear the file"
-msgstr "Không thể xóa tệp"
+msgstr "Không thể xóa file"
 
 msgid "Installed"
 msgstr "Đã cài đặt"
@@ -633,3 +633,69 @@ msgstr "Dung lượng chưa phân bổ"
 
 msgid "Expand Ext2/Ext3/Ext4"
 msgstr "Mở rộng Ext2/Ext3/Ext4"
+
+msgid "Wipe"
+msgstr "Xóa sạch"
+
+msgid "Select all partitions for wiping"
+msgstr "Chọn tất cả các phân vùng để xóa"
+
+msgid "Please enable wipe mode first"
+msgstr "Vui lòng bật chế độ xóa sạch trước"
+
+msgid "Cannot wipe disk with mounted partitions. Please unmount all partitions first."
+msgstr "Không thể xóa sạch ổ đĩa khi các phân vùng đang được gắn. Vui lòng tháo gắn tất cả phân vùng trước."
+
+msgid "Wipe Disk"
+msgstr "Xóa sạch ổ đĩa"
+
+msgid "WARNING"
+msgstr "CẢNH BÁO"
+
+msgid "This will completely erase the partition table and all data on /dev/%s!"
+msgstr "Điều này sẽ xóa hoàn toàn bảng phân vùng và tất cả dữ liệu trên /dev/%s!"
+
+msgid "All partitions will be deleted and the disk will be unallocated."
+msgstr "Tất cả các phân vùng sẽ bị xóa và đĩa sẽ không được phân bổ."
+
+msgid "THIS OPERATION CANNOT BE UNDONE!"
+msgstr "THAO TÁC NÀY KHÔNG THỂ HOÀN TÁC!"
+
+msgid "Number of partitions to be deleted: %d"
+msgstr "Số lượng phân vùng sẽ bị xóa: %d"
+
+msgid "Are you absolutely sure you want to continue?"
+msgstr "Bạn có hoàn toàn chắc chắn muốn tiếp tục không?"
+
+msgid "Wiping disk partition table..."
+msgstr "Đang xóa bảng phân vùng đĩa..."
+
+msgid "Disk partition table has been successfully erased"
+msgstr "Bảng phân vùng đĩa đã được xóa thành công"
+
+msgid "Failed to wipe disk"
+msgstr "Xóa sạch ổ đĩa thất bại"
+
+msgid "Failed to wipe disk: "
+msgstr "Xóa sạch ổ đĩa thất bại: "
+
+msgid "Disk Wipe Support"
+msgstr "Hỗ trợ xóa đĩa"
+
+msgid "Packages required to support disk wiping functionality (clearing partition table)."
+msgstr "Các gói cần thiết để hỗ trợ chức năng xóa đĩa (xóa bảng phân vùng)."
+
+msgid "Check Disk Wipe packages"
+msgstr "Kiểm tra gói xóa đĩa"
+
+msgid "Disk Wipe"
+msgstr "Xóa sạch ổ đĩa"
+
+msgid "dd from BusyBox"
+msgstr "dd từ BusyBox"
+
+msgid "Disk Wipe (dd command)"
+msgstr "Xóa sạch ổ đĩa (lệnh dd)"
+
+msgid "alternative"
+msgstr "thay thế"

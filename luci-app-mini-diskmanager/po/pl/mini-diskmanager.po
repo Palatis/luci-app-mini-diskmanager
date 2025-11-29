@@ -242,7 +242,7 @@ msgid "Cannot delete partition on mounted disk. Please unmount first."
 msgstr "Nie można usunąć partycji z zamontowanego dysku. Proszę najpierw odmontować."
 
 msgid "This will delete partition /dev/%s and all its data!"
-msgstr "To spowoduje usunięcie partycji /dev/%s i wszystkich jej danych!"
+msgstr "Ta operacja spowoduje usunięcie partycji /dev/%s i wszystkich jej danych!"
 
 msgid "Failed to load disk information: "
 msgstr "Nie udało się załadować informacji o dysku: "
@@ -359,7 +359,7 @@ msgid "Unable to read log file"
 msgstr "Nie można odczytać pliku dziennika"
 
 msgid "Log file cleared successfully"
-msgstr "Plik dziennika został pomyślnie wyczyszczony"
+msgstr "Plik dziennika wyczyszczony pomyślnie"
 
 msgid "Unable to clear the file"
 msgstr "Nie można wyczyścić pliku"
@@ -648,3 +648,69 @@ msgstr "Nieprzydzielone miejsce"
 
 msgid "Expand Ext2/Ext3/Ext4"
 msgstr "Rozszerzanie Ext2/Ext3/Ext4"
+
+msgid "Wipe"
+msgstr "Wymaż"
+
+msgid "Select all partitions for wiping"
+msgstr "Zaznacz wszystkie partycje do wymazania"
+
+msgid "Please enable wipe mode first"
+msgstr "Najpierw włącz tryb wymazywania"
+
+msgid "Cannot wipe disk with mounted partitions. Please unmount all partitions first."
+msgstr "Nie można wymazać dysku z zamontowanymi partycjami. Najpierw odmontuj wszystkie partycje."
+
+msgid "Wipe Disk"
+msgstr "Wymaż dysk"
+
+msgid "WARNING"
+msgstr "OSTRZEŻENIE"
+
+msgid "This will completely erase the partition table and all data on /dev/%s!"
+msgstr "Ta operacja usunie całkowicie tablicę partycji i wszystkie dane na /dev/%s!"
+
+msgid "THIS OPERATION CANNOT BE UNDONE!"
+msgstr "TEJ OPERACJI NIE MOŻNA COFNĄĆ!"
+
+msgid "Number of partitions to be deleted: %d"
+msgstr "Liczba partycji do usunięcia: %d"
+
+msgid "Are you absolutely sure you want to continue?"
+msgstr "Czy na pewno chcesz kontynuować?"
+
+msgid "Wiping disk partition table..."
+msgstr "Wymazywanie tablicy partycji dysku..."
+
+msgid "Disk partition table has been successfully erased"
+msgstr "Tablica partycji dla dysku została pomyślnie wymazana"
+
+msgid "Failed to wipe disk"
+msgstr "Nie udało się wymazać dysku"
+
+msgid "Failed to start disk wipe"
+msgstr "Nie udało się rozpocząć wymazywania dysku"
+
+msgid "Failed to wipe disk: "
+msgstr "Nie udało się wymazać dysku: "
+
+msgid "Disk Wipe Support"
+msgstr "Wsparcie wymazywania dysku"
+
+msgid "Packages required to support disk wiping functionality (clearing partition table)."
+msgstr "Pakiety wymagane do działania opcji wymazywania dysku (usuwanie tablicy partycji)."
+
+msgid "Check Disk Wipe packages"
+msgstr "Sprawdź pakiety do wymazywania dysku"
+
+msgid "Disk Wipe"
+msgstr "Wymazywanie dysku"
+
+msgid "dd from BusyBox"
+msgstr "dd z BusyBox"
+
+msgid "Disk Wipe (dd command)"
+msgstr "Wymazywanie dysku (komenda dd)"
+
+msgid "alternative"
+msgstr "alternatywnie"

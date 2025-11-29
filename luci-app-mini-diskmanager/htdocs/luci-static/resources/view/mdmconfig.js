@@ -192,26 +192,71 @@ return view.extend({
             });
         }, this);
 
+        o = s.taboption('packages', form.DummyValue, '_dummy_diskwipe');
+        o.rawhtml = true;
+        o.render = function() {
+            return E('div', {}, [
+                E('h3', {}, _('Disk Wipe Support')),
+                E('div', { 'class': 'cbi-map-descr' }, _('Packages required to support disk wiping functionality (clearing partition table).'))
+            ]);
+        };
+
+        o = s.taboption('packages', form.Button, '_check_diskwipe_packages', _('Check Disk Wipe packages'));
+        o.inputtitle = _('Disk Wipe');
+        o.inputstyle = 'action';
+        o.onclick = L.bind(function() {
+            showPackageDialog('Disk Wipe Support', {
+                'Disk Wipe (dd command)': [
+                    { name: 'coreutils', label: 'coreutils (' + _('alternative') + ')' },
+                    { name: 'coreutils-dd', label: 'coreutils-dd (' + _('alternative') + ')' }
+                ]
+            });
+        }, this);
+
         function showPackageDialog(title, requiredPackages) {
             ui.showModal(_(title), [
                 E('p', { 'class': 'spinning' }, _('Loading package data…'))
             ]);
 
-            pkg.checkPackages().then(function(installedPackages) {
+            var isDiskWipeDialog = (title === 'Disk Wipe Support');
+            
+            var checkPromises = [pkg.checkPackages()];
+            
+            if (isDiskWipeDialog) {
+                checkPromises.push(
+                    L.resolveDefault(fs.stat('/bin/dd'), null).then(function(result) {
+                        return (result && result.type === 'file');
+                    })
+                );
+            }
+
+            Promise.all(checkPromises).then(function(results) {
+                var installedPackages = results[0];
+                var ddExists = isDiskWipeDialog ? results[1] : false;
+
                 var _isInstalled = function(pkgName) {
                     return installedPackages.some(function(pkg) {
                         return pkg.includes(pkgName);
                     });
                 };
 
-                var _row = function(pkgName, installed) {
+                var _row = function(pkgName, installed, isAlternative, ddAvailable) {
                     var title = E('label', { 'class': 'cbi-value-title' }, pkgName);
-                    var btn = installed
-                        ? E('button', { 'class': 'edit btn', 'disabled': true }, _('Installed'))
-                        : E('button', {
+                    var btn;
+                    
+                    if (isAlternative && ddAvailable) {
+                        btn = E('button', { 
+                            'class': 'edit btn', 
+                            'disabled': true
+                        }, _('dd from BusyBox'));
+                    } else if (installed) {
+                        btn = E('button', { 'class': 'edit btn', 'disabled': true }, _('Installed'));
+                    } else {
+                        btn = E('button', {
                             'class': 'btn cbi-button-positive',
                             'click': function() { pkg.openInstallerSearch(pkgName); }
-                          }, _('Install…'));
+                        }, _('Install…'));
+                    }
 
                     return E('div', { 'class': 'cbi-value' }, [
                         title,
@@ -230,7 +275,8 @@ return view.extend({
                         node.push(E('h4', {}, _(key)));
 
                     pkgs.forEach(function(p) {
-                        node.push(_row(p.label, _isInstalled(p.name)));
+                        var isAlternative = (p.name === 'coreutils' || p.name === 'coreutils-dd');
+                        node.push(_row(p.label, _isInstalled(p.name), isAlternative, ddExists));
                     });
                 });
 

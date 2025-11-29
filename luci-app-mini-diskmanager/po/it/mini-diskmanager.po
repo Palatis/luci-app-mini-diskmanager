@@ -633,3 +633,72 @@ msgstr "Spazio non allocato"
 
 msgid "Expand Ext2/Ext3/Ext4"
 msgstr "Espandi Ext2/Ext3/Ext4"
+
+msgid "Wipe"
+msgstr "Cancella"
+
+msgid "Select all partitions for wiping"
+msgstr "Seleziona tutte le partizioni per la cancellazione"
+
+msgid "Please enable wipe mode first"
+msgstr "Abilita prima la modalità di cancellazione"
+
+msgid "Cannot wipe disk with mounted partitions. Please unmount all partitions first."
+msgstr "Impossibile cancellare il disco con partizioni montate. Smonta prima tutte le partizioni."
+
+msgid "Wipe Disk"
+msgstr "Cancella disco"
+
+msgid "WARNING"
+msgstr "AVVISO"
+
+msgid "This will completely erase the partition table and all data on /dev/%s!"
+msgstr "Questo cancellerà completamente la tabella delle partizioni e tutti i dati su /dev/%s!"
+
+msgid "All partitions will be deleted and the disk will be unallocated."
+msgstr "Tutte le partizioni verranno eliminate e il disco sarà non allocato."
+
+msgid "THIS OPERATION CANNOT BE UNDONE!"
+msgstr "QUESTA OPERAZIONE NON PUÒ ESSERE ANNULLATA!"
+
+msgid "Number of partitions to be deleted: %d"
+msgstr "Numero di partizioni da eliminare: %d"
+
+msgid "Are you absolutely sure you want to continue?"
+msgstr "Sei assolutamente sicuro di voler continuare?"
+
+msgid "Wiping disk partition table..."
+msgstr "Cancellazione tabella partizioni disco..."
+
+msgid "Disk partition table has been successfully erased"
+msgstr "La tabella delle partizioni del disco è stata cancellata con successo"
+
+msgid "Failed to wipe disk"
+msgstr "Impossibile cancellare il disco"
+
+msgid "Failed to start disk wipe"
+msgstr "Impossibile avviare la cancellazione del disco"
+
+msgid "Failed to wipe disk: "
+msgstr "Impossibile cancellare il disco: "
+
+msgid "Disk Wipe Support"
+msgstr "Supporto cancellazione disco"
+
+msgid "Packages required to support disk wiping functionality (clearing partition table)."
+msgstr "Pacchetti necessari per supportare la funzionalità di cancellazione del disco (cancellazione della tabella delle partizioni)."
+
+msgid "Check Disk Wipe packages"
+msgstr "Verifica pacchetti cancellazione disco"
+
+msgid "Disk Wipe"
+msgstr "Cancellazione disco"
+
+msgid "dd from BusyBox"
+msgstr "dd da BusyBox"
+
+msgid "Disk Wipe (dd command)"
+msgstr "Cancellazione disco (comando dd)"
+
+msgid "alternative"
+msgstr "alternativa"

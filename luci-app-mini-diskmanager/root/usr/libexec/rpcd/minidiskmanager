@@ -32,7 +32,6 @@ is_device_mounted() {
 
 ##################################################################################################################
 # PARTITION SUFFIX DETECTOR / DETEKTOR SUFIKSU PARTYCJI
-# (sda1 vs nvme0n1p1)
 ##################################################################################################################
 part_suffix() {
     dev="$1"
@@ -45,21 +44,123 @@ part_suffix() {
 ##################################################################################################################
 # PARSE PARTITION NAME / PARSOWANIE NAZWY PARTYCJI
 # Extracts device and partition number / Wyodrębnia urządzenie i numer partycji
+# Examples / Przykłady:
+#   /dev/sda1 -> DEVICE=/dev/sda NUM=1
+#   /dev/sataa3 -> DEVICE=/dev/sataa NUM=3
+#   /dev/md1p2 -> DEVICE=/dev/md1 NUM=2
+#   /dev/mmcblk0p3 -> DEVICE=/dev/mmcblk0 NUM=3
+#   /dev/nvme0n1p1 -> DEVICE=/dev/nvme0n1 NUM=1
+#   /dev/sda -> DEVICE=/dev/sda NUM=1 (disk without partition table)
 ##################################################################################################################
 parse_partition_name() {
     partition="$1"
-    # For /dev/sda1 -> DEVICE=/dev/sda NUM=1
-    # For /dev/nvme0n1p1 -> DEVICE=/dev/nvme0n1 NUM=1
-    if echo "$partition" | grep -qE 'p[0-9]+$'; then
-        # nvme style
-        DEVICE=$(echo "$partition" | sed -E 's/p[0-9]+$//')
-        NUM=$(echo "$partition" | sed -E 's/.*p([0-9]+)$/\1/')
+    NUM=""
+    BNAME=$(basename "$partition")
+    
+    log_msg "DEBUG: Parsing partition name: $partition (basename: $BNAME)"
+    
+    if [ "$BNAME" != "${BNAME#sd?}" ]; then
+        if [ -z "${BNAME#sd?}" ]; then
+            DEVICE="/dev/$BNAME"
+            NUM="1"
+            log_msg "DEBUG: Detected sd* disk without partition: DEVICE=$DEVICE NUM=$NUM"
+        else
+            DEVICE="/dev/${BNAME:0:3}"
+            NUM="${BNAME#sd?}"
+            log_msg "DEBUG: Detected sd* partition: DEVICE=$DEVICE NUM=$NUM"
+        fi
+    elif [ "$BNAME" != "${BNAME#sata?}" ]; then
+        if [ -z "${BNAME#sata?}" ]; then
+            DEVICE="/dev/$BNAME"
+            NUM="1"
+            log_msg "DEBUG: Detected sata* disk without partition: DEVICE=$DEVICE NUM=$NUM"
+        else
+            DEVICE="/dev/${BNAME:0:5}"
+            NUM="${BNAME#sata?}"
+            log_msg "DEBUG: Detected sata* partition: DEVICE=$DEVICE NUM=$NUM"
+        fi
+    elif [ "$BNAME" != "${BNAME#md?}" ]; then
+        if echo "$BNAME" | grep -q 'p[0-9]*$'; then
+            DEVICE="/dev/${BNAME%%p*}"
+            NUM="${BNAME##*p}"
+            log_msg "DEBUG: Detected md* with p separator: DEVICE=$DEVICE NUM=$NUM"
+        elif [ -z "${BNAME#md?}" ]; then
+            DEVICE="/dev/$BNAME"
+            NUM="1"
+            log_msg "DEBUG: Detected md* disk without partition: DEVICE=$DEVICE NUM=$NUM"
+        else
+            DEVICE="/dev/${BNAME:0:3}"
+            NUM="${BNAME#md?}"
+            log_msg "DEBUG: Detected md* partition: DEVICE=$DEVICE NUM=$NUM"
+        fi
+    elif [ "$BNAME" != "${BNAME#mmcblk?}" ]; then
+        if echo "$BNAME" | grep -q 'p[0-9]*$'; then
+            DEVICE="/dev/${BNAME%%p*}"
+            NUM="${BNAME##*p}"
+            log_msg "DEBUG: Detected mmcblk* partition: DEVICE=$DEVICE NUM=$NUM"
+        else
+            DEVICE="/dev/$BNAME"
+            NUM="1"
+            log_msg "DEBUG: Detected mmcblk* disk without partition: DEVICE=$DEVICE NUM=$NUM"
+        fi
+    elif [ "$BNAME" != "${BNAME#nvme?n?}" ]; then
+        if echo "$BNAME" | grep -q 'p[0-9]*$'; then
+            DEVICE="/dev/${BNAME%%p*}"
+            NUM="${BNAME##*p}"
+            log_msg "DEBUG: Detected nvme* partition: DEVICE=$DEVICE NUM=$NUM"
+        else
+            DEVICE="/dev/$BNAME"
+            NUM="1"
+            log_msg "DEBUG: Detected nvme* disk without partition: DEVICE=$DEVICE NUM=$NUM"
+        fi
     else
-        # sda style
-        DEVICE=$(echo "$partition" | sed -E 's/[0-9]+$//')
-        NUM=$(echo "$partition" | sed -E 's/.*([0-9]+)$/\1/')
+        log_msg "ERROR: $partition is invalid - unsupported device type (BŁĄD: $partition jest niepoprawny - nieobsługiwany typ urządzenia)"
+        return 1
     fi
+    
     export DEVICE NUM
+    log_msg "DEBUG: Final parse result - DEVICE=$DEVICE NUM=$NUM"
+    return 0
+}
+
+##################################################################################################################
+# CHECK TARGET PATH / SPRAWDZANIE ŚCIEŻKI DOCELOWEJ
+##################################################################################################################
+check_target_path() {
+    target="$1"
+    
+    if [ ! -b "$target" ]; then
+        log_msg "ERROR: $target does not exist (BŁĄD: $target nie istnieje)"
+        echo "1" > "$RESULT_FILE"
+        return 1
+    fi
+    log_msg "DEBUG: $target exists ($target istnieje)"
+    
+    BNAME=$(basename "$target")
+    
+    if [ "$BNAME" != "${BNAME#sd?}" ]; then
+        log_msg "DEBUG: $target is valid (sd* device) ($target jest poprawny - urządzenie sd*)"
+    elif [ "$BNAME" != "${BNAME#sata?}" ]; then
+        log_msg "DEBUG: $target is valid (sata* device) ($target jest poprawny - urządzenie sata*)"
+    elif [ "$BNAME" != "${BNAME#md?}" ]; then
+        log_msg "DEBUG: $target is valid (md* device) ($target jest poprawny - urządzenie md*)"
+    elif [ "$BNAME" != "${BNAME#mmcblk?}" ]; then
+        if [ "$BNAME" != "${BNAME#mmcblk0*}" ]; then
+            log_msg "ERROR: $target is invalid (mmcblk0 protected) (BŁĄD: $target jest niepoprawny - mmcblk0 jest chroniony)"
+            echo "1" > "$RESULT_FILE"
+            return 1
+        fi
+        log_msg "DEBUG: $target is valid (mmcblk* device) ($target jest poprawny - urządzenie mmcblk*)"
+    elif [ "$BNAME" != "${BNAME#nvme?n?}" ]; then
+        log_msg "DEBUG: $target is valid (nvme* device) ($target jest poprawny - urządzenie nvme*)"
+    else
+        log_msg "ERROR: $target is invalid (unsupported device type) (BŁĄD: $target jest niepoprawny - nieobsługiwany typ urządzenia)"
+        echo "1" > "$RESULT_FILE"
+        return 1
+    fi
+    
+    log_msg "DEBUG: $target validation passed ($target przeszedł walidację)"
+    return 0
 }
 
 ##################################################################################################################
@@ -559,9 +660,6 @@ create_partition_impl() {
 ##################################################################################################################
 # DELETE PARTITION / USUWANIE PARTYCJI
 ##################################################################################################################
-# Arguments / Argumenty:
-#   $1 - partition_path: full partition path / pełna ścieżka do partycji (np. /dev/sda1, /dev/nvme0n1p1)
-##################################################################################################################
 delete_partition() {
     partition_path="$1"
 
@@ -882,6 +980,63 @@ format_partition() {
 }
 
 ##################################################################################################################
+# WIPE DISK / WYMAZYWANIE DYSKU
+##################################################################################################################
+wipe_disk() {
+    device="$1"
+    
+    log_msg "=== Wiping disk $device (Wymazywanie dysku $device) ==="
+    
+    if [ -z "$device" ]; then
+        log_msg "ERROR: No device specified (BŁĄD: Nie podano urządzenia)"
+        echo "1" > "$RESULT_FILE"
+        return 1
+    fi
+
+    case "$device" in
+        /dev/*)
+            TARGET_DEVICE="$device"
+            ;;
+        *)
+            TARGET_DEVICE="/dev/$device"
+            ;;
+    esac
+    
+    log_msg "Target device: $TARGET_DEVICE (Urządzenie docelowe: $TARGET_DEVICE)"
+    
+    check_target_path "$TARGET_DEVICE"
+    rc=$?
+    if [ $rc -ne 0 ]; then
+        log_msg "ERROR: Target path validation failed (BŁĄD: Walidacja ścieżki docelowej nie powiodła się)"
+        return $rc
+    fi
+    
+    log_msg "Unmounting all partitions on $TARGET_DEVICE (Odmontowywanie wszystkich partycji na $TARGET_DEVICE)"
+    unmount_device "$TARGET_DEVICE"
+    sleep 2
+    
+    log_msg "Wiping first 10MB of $TARGET_DEVICE (Wymazywanie pierwszych 10MB $TARGET_DEVICE)"
+    dd if=/dev/zero of="$TARGET_DEVICE" bs=1M count=10 >> "$LOG_FILE" 2>&1
+    rc=$?
+    
+    if [ $rc -ne 0 ]; then
+        log_msg "ERROR: Failed to wipe disk (rc=$rc) (BŁĄD: Nie udało się wyczyścić dysku)"
+        echo $rc > "$RESULT_FILE"
+        return $rc
+    fi
+    
+    log_msg "Disk wiped successfully, refreshing partition table (Dysk wyczyszczony pomyślnie, odświeżanie tablicy partycji)"
+    
+    refresh_partitions "$TARGET_DEVICE"
+    
+    log_msg "Wipe operation completed successfully (Operacja wymazywania zakończona pomyślnie)"
+    echo "0" > "$RESULT_FILE"
+    
+    sync
+    return 0
+}
+
+##################################################################################################################
 # JSON API INTERFACE / INTERFEJS API JSON
 ##################################################################################################################
 case "$1" in
@@ -907,6 +1062,9 @@ case "$1" in
             json_add_string "partition" "string"
             json_add_string "new_size" "string"
             json_add_string "unit" "string"
+        json_close_object
+        json_add_object "wipe_disk"
+            json_add_string "device" "string"
         json_close_object
         json_add_object "check_operation"
             json_add_string "pid" "string"
@@ -978,6 +1136,21 @@ case "$1" in
 
                 (
                     resize_partition "$partition" "$new_size" "$unit"
+                    exit $?
+                ) &
+                pid=$!
+                echo $pid > "$PID_FILE"
+
+                json_init; json_add_boolean success 1; json_add_int pid $pid; json_dump
+                ;;
+
+            wipe_disk)
+                read input
+                json_load "$input"
+                json_get_var device device
+
+                (
+                    wipe_disk "$device"
                     exit $?
                 ) &
                 pid=$!

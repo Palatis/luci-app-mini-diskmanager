@@ -411,6 +411,9 @@ return view.extend({
     deviceRegExp: new RegExp('^((h|s)d[a-z]|nvme[0-9]+n[0-9]+|mmcblk[0-9]+)$'),
     supportedFs: null,
     MIN_VISIBLE_SIZE: 200 * 1024 * 1024, // 200 MB
+    wipeAllEnabled: false,
+    hasDdSupport: null,
+    wipeAllEnabled: false,
 
     getInstalledPackages: function() {
         const tryCmd = (cmd, args) => {
@@ -492,6 +495,34 @@ return view.extend({
         }
     },
 
+    checkDdSupport: async function() {
+        if (this.hasDdSupport !== null) return this.hasDdSupport;
+
+        try {
+            try {
+                const result = await L.resolveDefault(fs.stat('/bin/dd'), null);
+                this.hasDdSupport = (result && result.type === 'file');
+                
+                if (this.hasDdSupport) {
+                    return true;
+                }
+            } catch (e) {
+                // None
+            }
+            
+            const installed = await this.getInstalledPackages();
+            const has = (name) => this._isPackageInstalledFromList(installed, name);
+            
+            this.hasDdSupport = has('coreutils') || has('coreutils-dd');
+            
+            return this.hasDdSupport;
+        } catch (e) {
+            console.error('checkDdSupport error:', e);
+            this.hasDdSupport = false;
+            return this.hasDdSupport;
+        }
+    },
+
     disableAllButtonsAndRemember: function() {
         try {
             const nodes = Array.from(document.querySelectorAll('button, input[type="button"], input[type="submit"], [role="button"]'));
@@ -534,6 +565,8 @@ return view.extend({
     },
 
     load: function() {
+        this.checkDdSupport();
+        
         return Promise.all([
             this.getBlockDevices(),
             this.getMountedPartitions(),
@@ -1368,7 +1401,13 @@ return view.extend({
                         'class': 'cbi-button cbi-button-negative important',
                         'click': ui.createHandlerFn(this, this.showFormatDialog),
                         'disabled': 'disabled'
-                    }, _('Format'))
+                    }, _('Format')),
+                    E('button', {
+                        'id': 'btn-wipe',
+                        'class': 'cbi-button cbi-button-action important',
+                        'click': ui.createHandlerFn(this, this.showWipeDialog),
+                        'disabled': 'disabled'
+                    }, _('Wipe'))
                 ])
             ])
         ]);
@@ -1960,10 +1999,66 @@ return view.extend({
         let equalWidth = (100 / partitionTableTitles.length).toFixed(2) + '%';
 
         let headerRowChildren = partitionTableTitles.map((t, idx) => {
-            return E('th', {
-                'class': 'th left',
-                'style': 'width:' + (idx === 0 ? '180px' : equalWidth) + '; min-width:' + (idx === 0 ? '180px' : '90px') + '; text-align:' + (idx === 0 ? 'left' : 'left') + ';'
-            }, t);
+            if (idx === 0) {
+                return E('th', {
+                    'class': 'th left',
+                    'style': 'width: 180px; min-width: 180px; text-align: left; cursor: default;',
+                    'click': function(ev) {
+                        ev.stopPropagation();
+                        ev.preventDefault();
+                    }
+                }, [
+                    E('span', {
+                        'style': 'display: inline-block;',
+                        'click': function(ev) {
+                            ev.stopPropagation();
+                        }
+                    }, [
+                        E('input', {
+                            'type': 'checkbox',
+                            'id': 'wipeall-checkbox',
+                            'title': _('Select all partitions for wiping'),
+                            'style': 'margin-right: 8px; vertical-align: middle; cursor: pointer;',
+                            'change': ui.createHandlerFn(this, function(ev) {
+                                this.wipeAllEnabled = ev.target.checked;
+                                
+                                let partCheckboxes = document.querySelectorAll('.partition-select-checkbox');
+                                
+                                if (this.wipeAllEnabled) {
+                                    partCheckboxes.forEach(cb => {
+                                        cb.checked = true;
+                                        cb.disabled = true;
+                                    });
+                                } else {
+                                    partCheckboxes.forEach(cb => {
+                                        cb.checked = false;
+                                        cb.disabled = false;
+                                    });
+                                    this.selectedPartition = null;
+                                    this.selectedUnallocated = null;
+                                }
+                                
+                                this.updateActionButtons();
+                            }),
+                            'click': function(ev) {
+                                ev.stopPropagation();
+                            }
+                        })
+                    ]),
+                    E('span', {
+                        'style': 'pointer-events: none; user-select: none;',
+                        'click': function(ev) {
+                            ev.stopPropagation();
+                            ev.preventDefault();
+                        }
+                    }, t)
+                ]);
+            } else {
+                return E('th', {
+                    'class': 'th left',
+                    'style': 'width:' + equalWidth + '; min-width: 90px; text-align: left; cursor: default; pointer-events: none;'
+                }, t);
+            }
         });
 
         let table = E('table', {
@@ -2094,6 +2189,7 @@ return view.extend({
             (function(self, partRef, partedInfo, isExtended, extendedPartitions, partNum, fsClass, displayText, indicatorClass) {
                 let checkbox = E('input', {
                     'type': 'checkbox',
+                    'class': 'partition-select-checkbox',
                     'name': 'partition_select',
                     'value': partRef.name,
                     'data-partition': partRef.name,
@@ -2168,6 +2264,7 @@ return view.extend({
 
                         let logCheckbox = E('input', {
                             'type': 'checkbox',
+                            'class': 'partition-select-checkbox',
                             'name': 'partition_select',
                             'value': logPart.name,
                             'data-partition': logPart.name,
@@ -2419,7 +2516,7 @@ return view.extend({
 
     updateActionButtons: function() {
         if (!this.selectedDisk) {
-            ['btn-mount', 'btn-unmount', 'btn-create', 'btn-resize', 'btn-delete', 'btn-format'].forEach(id => {
+            ['btn-mount', 'btn-unmount', 'btn-create', 'btn-resize', 'btn-delete', 'btn-format', 'btn-wipe'].forEach(id => {
                 let btn = document.getElementById(id);
                 if (btn) btn.setAttribute('disabled', 'disabled');
             });
@@ -2441,6 +2538,7 @@ return view.extend({
         let resizeBtn = document.getElementById('btn-resize');
         let deleteBtn = document.getElementById('btn-delete');
         let formatBtn = document.getElementById('btn-format');
+        let wipeBtn = document.getElementById('btn-wipe');
 
         let isExtendedSelected = hasPartition && 
             this.getPartitionType(this.selectedPartition, diskInfo) === 'extended';
@@ -2478,7 +2576,7 @@ return view.extend({
         }
 
         if (deleteBtn) {
-            if (hasAnyMountedPartition || !hasPartition || hasUnallocated) {
+            if (hasAnyMountedPartition || !hasPartition || hasUnallocated || this.wipeAllEnabled) {
                 deleteBtn.setAttribute('disabled', 'disabled');
             } else {
                 deleteBtn.removeAttribute('disabled');
@@ -2490,6 +2588,27 @@ return view.extend({
                 formatBtn.setAttribute('disabled', 'disabled');
             } else {
                 formatBtn.removeAttribute('disabled');
+            }
+        }
+
+        if (wipeBtn) {
+            if (!this.wipeAllEnabled || this.hasDdSupport === false || hasAnyMountedPartition) {
+                wipeBtn.setAttribute('disabled', 'disabled');
+            } else {
+                wipeBtn.removeAttribute('disabled');
+            }
+        }
+
+        let wipeCheckbox = document.getElementById('wipeall-checkbox');
+        if (wipeCheckbox) {
+            let hasPartitions = diskInfo && diskInfo.partitions && diskInfo.partitions.length > 0;
+            
+            if (hasAnyMountedPartition || !hasPartitions) {
+                wipeCheckbox.disabled = true;
+                wipeCheckbox.checked = false;
+                this.wipeAllEnabled = false;
+            } else {
+                wipeCheckbox.disabled = false;
             }
         }
     },
@@ -2839,7 +2958,7 @@ return view.extend({
                                 E('div', {'style': 'margin-top: 5px; font-size: 12px; color: var(--text-color-secondary)'}, [
                                     E('div', {
                                         'id': 'available-space-info',
-                                        'style': 'margin-top: 1px;'
+                                        'style': 'margin-top: 3px;'
                                     }, 
                                         _('Available: %s MB / %s GB / %s TB').format(
                                             freeSpaceMB, 
@@ -3080,7 +3199,6 @@ return view.extend({
         } catch (err) {
             this.hideOperationStatus();
             console.error('createPartition error:', err);
-            ui.addNotification(null, E('p', _('Failed to create partition: ') + (err && err.message ? err.message : String(err))), 'error');
         } finally {
             try { restorer.restore(); } catch (e) { console.error('restore buttons failed', e); }
         }
@@ -3215,7 +3333,83 @@ return view.extend({
         } catch (err) {
             this.hideOperationStatus();
             console.error('formatPartition error:', err);
-            ui.addNotification(null, E('p', _('Failed to format partition: ') + (err && err.message ? err.message : String(err))), 'error');
+        } finally {
+            try { restorer.restore(); } catch (e) { console.error('restore buttons failed', e); }
+        }
+    },
+
+    showWipeDialog: function() {
+        if (!this.selectedDisk || !this.wipeAllEnabled) {
+            ui.addNotification(null, E('p', _('Please enable wipe mode first')), 'warning');
+            return;
+        }
+
+        let diskName = this.selectedDisk;
+        let diskInfo = this.diskData[diskName];
+
+        if (this.hasAnyPartitionMounted(diskName)) {
+            ui.addNotification(null, E('p', _('Cannot wipe disk with mounted partitions. Please unmount all partitions first.')), 'warning');
+            return;
+        }
+
+        ui.showModal(_('Wipe Disk'), [
+            E('div', {'class': 'cbi-section'}, [
+                E('div', {'class': 'alert-message warning'}, [
+                    E('strong', {}, _('WARNING')),
+                    E('br'),
+                    _('This will completely erase the partition table and all data on /dev/%s!').format(diskName),
+                    E('br'),
+                    E('br'),
+                    E('strong', {}, _('THIS OPERATION CANNOT BE UNDONE!'))
+                ]),
+                E('p', {}, _('Number of partitions to be deleted: %d').format(diskInfo.partitions.length)),
+                E('p', {}, _('Are you absolutely sure you want to continue?'))
+            ]),
+            E('div', {'class': 'right'}, [
+                E('button', {'class': 'btn', 'click': ui.hideModal}, _('Cancel')),
+                ' ',
+                E('button', {
+                    'class': 'btn cbi-button-negative',
+                    'click': ui.createHandlerFn(this, function() {
+                        ui.hideModal();
+                        this.wipeDisk(diskName);
+                    })
+                }, _('Wipe Disk'))
+            ])
+        ]);
+    },
+
+    wipeDisk: async function(diskName) {
+        const restorer = this.disableActiveButtonsAndRemember();
+        try {
+            let device = '/dev/' + diskName;
+
+            let result = await this.callRpcd('wipe_disk', {
+                device: device
+            });
+
+            if (result.success && result.pid) {
+                await this.monitorOperation(
+                    result.pid,
+                    _('Wiping disk partition table...'),
+                    _('Disk partition table has been successfully erased'),
+                    _('Failed to wipe disk')
+                );
+            } else {
+                throw new Error(result.error || _('Failed to start disk wipe'));
+            }
+
+            this.wipeAllEnabled = false;
+            let wipeCheckbox = document.getElementById('wipeall-checkbox');
+            if (wipeCheckbox) {
+                wipeCheckbox.checked = false;
+            }
+            this.selectedPartition = null;
+            this.selectedUnallocated = null;
+            this.refreshDiskView();
+        } catch (err) {
+            this.hideOperationStatus();
+            console.error('wipeDisk error:', err);
         } finally {
             try { restorer.restore(); } catch (e) { console.error('restore buttons failed', e); }
         }
@@ -3443,7 +3637,6 @@ return view.extend({
         } catch (err) {
             this.hideOperationStatus();
             console.error('resizePartition error:', err);
-            ui.addNotification(null, E('p', _('Failed to resize partition: ') + (err && err.message ? err.message : String(err))), 'error');
         } finally {
             try { restorer.restore(); } catch (e) { console.error('restore buttons failed', e); }
         }
