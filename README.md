@@ -26,16 +26,12 @@ LuCI JS Mini Disk Manager. Interface for simple disk/partition management from O
 > - NTFS
 > - exFAT
 
-### <img src="https://raw.githubusercontent.com/4IceG/Personal_data/master/dooffy_design_icons_EU_flags_United_Kingdom.png" height="24"> Presentation / <img src="https://raw.githubusercontent.com/4IceG/Personal_data/master/dooffy_design_icons_EU_flags_Poland.png" height="24"> Prezentacja
-
-![demo](https://github.com/user-attachments/assets/dc730ab5-94e2-4a68-8dfc-9a7b0a61ea1b)
-
 
 ### <img src="https://raw.githubusercontent.com/4IceG/Personal_data/master/dooffy_design_icons_EU_flags_United_Kingdom.png" height="24"> Design concept / <img src="https://raw.githubusercontent.com/4IceG/Personal_data/master/dooffy_design_icons_EU_flags_Poland.png" height="24"> Koncepcja wyglądu
 
 > Disk Manager / Menedżer dysków:
 
-![](https://github.com/4IceG/Personal_data/blob/master/zrzuty/mini-diskmanager/mini1.png?raw=true)
+![](https://github.com/4IceG/Personal_data/blob/master/zrzuty/mini-diskmanager/last.png?raw=true)
 
 ![](https://github.com/4IceG/Personal_data/blob/master/zrzuty/mini-diskmanager/mini2.png?raw=true)
 
