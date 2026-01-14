@@ -702,3 +702,83 @@ msgstr "Xóa sạch ổ đĩa (lệnh dd)"
 
 msgid "alternative"
 msgstr "thay thế"
+
+# SMART
+
+msgid "Attribute"
+msgstr "Thuộc tính"
+
+msgid "ID"
+msgstr "ID"
+
+msgid "RAW"
+msgstr "THÔNGTIN"
+
+msgid "VALUE"
+msgstr "GIÁTRỊ"
+
+msgid "WORST"
+msgstr "TỆNHẤT"
+
+msgid "THRESH"
+msgstr "NGƯỠNG"
+
+msgid "Value"
+msgstr "Giá trị"
+
+msgid "NVMe S.M.A.R.T. Health Status"
+msgstr "Tình trạng sức khỏe NVMe S.M.A.R.T."
+
+msgid "OK"
+msgstr "OK"
+
+msgid "WARNING"
+msgstr "CẢNHBÁO"
+
+msgid "Power On Time"
+msgstr "Thời gian hoạt động"
+
+msgid "Power On Hours"
+msgstr "Giờ hoạt động"
+
+msgid "Disk Usage"
+msgstr "Sử dụng ổ đĩa"
+
+msgid "Disk Wear Level"
+msgstr "Mức độ hao mòn ổ đĩa"
+
+msgid "Available Spare"
+msgstr "Dự trữ khả dụng"
+
+msgid "Available Spare Threshold"
+msgstr "Ngưỡng dự trữ khả dụng"
+
+msgid "hour"
+msgstr "giờ"
+
+msgid "hours"
+msgstr "giờ"
+
+msgid "h"
+msgstr "g"
+
+msgid "worn"
+msgstr "đã hao mòn"
+
+msgid "remaining"
+msgstr "còn lại"
+
+msgid "S.M.A.R.T. overall-health self-assessment test result: "
+msgstr "Kết quả kiểm tra tự đánh giá tình trạng chung S.M.A.R.T.: "
+
+msgid "No S.M.A.R.T. attributes found."
+msgstr "Không tìm thấy thuộc tính S.M.A.R.T."
+
+msgid "Loading S.M.A.R.T. data..."
+msgstr "Đang tải dữ liệu S.M.A.R.T..."
+
+msgid "Unable to read S.M.A.R.T. data."
+msgstr "Không thể đọc dữ liệu S.M.A.R.T."
+
+msgid "Error reading S.M.A.R.T. data."
+msgstr "Lỗi khi đọc dữ liệu S.M.A.R.T."

@@ -702,3 +702,83 @@ msgstr "磁盘擦除（dd 命令）"
 
 msgid "alternative"
 msgstr "替代"
+
+# SMART
+
+msgid "Attribute"
+msgstr "属性"
+
+msgid "ID"
+msgstr "ID"
+
+msgid "RAW"
+msgstr "原始值"
+
+msgid "VALUE"
+msgstr "当前值"
+
+msgid "WORST"
+msgstr "最差值"
+
+msgid "THRESH"
+msgstr "阈值"
+
+msgid "Value"
+msgstr "值"
+
+msgid "NVMe S.M.A.R.T. Health Status"
+msgstr "NVMe S.M.A.R.T. 健康状态"
+
+msgid "OK"
+msgstr "正常"
+
+msgid "WARNING"
+msgstr "警告"
+
+msgid "Power On Time"
+msgstr "通电时间"
+
+msgid "Power On Hours"
+msgstr "通电小时数"
+
+msgid "Disk Usage"
+msgstr "磁盘使用率"
+
+msgid "Disk Wear Level"
+msgstr "磁盘损耗等级"
+
+msgid "Available Spare"
+msgstr "可用备用"
+
+msgid "Available Spare Threshold"
+msgstr "可用备用阈值"
+
+msgid "hour"
+msgstr "小时"
+
+msgid "hours"
+msgstr "小时"
+
+msgid "h"
+msgstr "时"
+
+msgid "worn"
+msgstr "已损耗"
+
+msgid "remaining"
+msgstr "剩余"
+
+msgid "S.M.A.R.T. overall-health self-assessment test result: "
+msgstr "S.M.A.R.T. 整体健康自我评估测试结果："
+
+msgid "No S.M.A.R.T. attributes found."
+msgstr "未找到 S.M.A.R.T. 属性。"
+
+msgid "Loading S.M.A.R.T. data..."
+msgstr "正在加载 S.M.A.R.T. 数据..."
+
+msgid "Unable to read S.M.A.R.T. data."
+msgstr "无法读取 S.M.A.R.T. 数据。"
+
+msgid "Error reading S.M.A.R.T. data."
+msgstr "读取 S.M.A.R.T. 数据时出错。"

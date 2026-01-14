@@ -21,6 +21,12 @@ document.head.append(E('style', {'type': 'text/css'},
 	--app-mini-diskmanager-primary: #2ea256;
 	--app-mini-diskmanager-danger: #ff4e54;
 	--app-mini-diskmanager-warning: #ff9800;
+	--app-disks-info-dark-font-color: #2e2e2e;
+	--app-disks-info-light-font-color: #fff;
+	--app-disks-info-warn-color: #fff7e2;
+	--app-disks-info-err-color: #fcc3bf;
+	--app-disks-info-ok-color-label: #2ea256;
+	--app-disks-info-err-color-label: #ff4e54;
 	--partition-color-ext4: rgba(144, 195, 86, 0.8);
 	--partition-color-ext3: rgba(124, 179, 66, 0.8);
 	--partition-color-ext2: rgba(98, 146, 55, 0.8);
@@ -49,6 +55,12 @@ document.head.append(E('style', {'type': 'text/css'},
 	--app-mini-diskmanager-primary: #2ea256;
 	--app-mini-diskmanager-danger: #a93734;
 	--app-mini-diskmanager-warning: #f57c00;
+	--app-disks-info-dark-font-color: #fff;
+	--app-disks-info-light-font-color: #fff;
+	--app-disks-info-warn-color: #8d7000;
+	--app-disks-info-err-color: #a93734;
+	--app-disks-info-ok-color-label: #007627;
+	--app-disks-info-err-color-label: #a93734;
 	--partition-color-ext4: rgba(90, 138, 47, 0.8);
 	--partition-color-ext3: rgba(74, 118, 36, 0.8);
 	--partition-color-ext2: rgba(58, 96, 25, 0.8);
@@ -97,6 +109,10 @@ document.head.append(E('style', {'type': 'text/css'},
 
 .controls > *:nth-child(2),
 .controls > *:nth-child(3) {
+	flex-basis: 25%;
+}
+
+.controls > *:nth-child(4) {
 	flex-basis: 50%;
 }
 
@@ -124,6 +140,52 @@ document.head.append(E('style', {'type': 'text/css'},
 .controls .control-group select {
 	min-width: 50px;
 	flex-grow: 1;
+}
+
+.disks-info-label-status {
+	display: inline;
+	margin: 0 4px !important;
+	padding: 1px 4px;
+	border-radius: 3px;
+	text-transform: uppercase;
+	font-weight: bold;
+	line-height: 1.6em;
+}
+
+.disks-info-ok-label {
+	background-color: var(--app-disks-info-ok-color-label) !important;
+	color: var(--app-disks-info-light-font-color) !important;
+}
+
+.disks-info-err-label {
+	background-color: var(--app-disks-info-err-color-label) !important;
+	color: var(--app-disks-info-light-font-color) !important;
+}
+
+.disks-info-warn {
+	background-color: var(--app-disks-info-warn-color) !important;
+	color: var(--app-disks-info-dark-font-color) !important;
+}
+
+.disks-info-warn .td {
+	color: var(--app-disks-info-dark-font-color) !important;
+}
+
+.disks-info-warn td {
+	color: var(--app-disks-info-dark-font-color) !important;
+}
+
+.disks-info-err {
+	background-color: var(--app-disks-info-err-color) !important;
+	color: var(--app-disks-info-dark-font-color) !important;
+}
+
+.disks-info-err .td {
+	color: var(--app-disks-info-dark-font-color) !important;
+}
+
+.disks-info-err td {
+	color: var(--app-disks-info-dark-font-color) !important;
 }
 
 .operation-status {
@@ -173,6 +235,7 @@ document.head.append(E('style', {'type': 'text/css'},
 .partition-segment:last-child {
 	border-right: none;
 }
+
 
 .partition-segment.ext4 { 
 	background-color: var(--partition-color-ext4);
@@ -407,7 +470,7 @@ return view.extend({
     selectedPartition: null,
     selectedUnallocated: null,
     diskData: {},
-    Partitions: {},
+    mountedPartitions: {},
     deviceRegExp: new RegExp('^((h|s)d[a-z]|nvme[0-9]+n[0-9]+|mmcblk[0-9]+)$'),
     supportedFs: null,
     MIN_VISIBLE_SIZE: 200 * 1024 * 1024, // 200 MB
@@ -473,8 +536,8 @@ return view.extend({
             if (has('dosfstools') && has('kmod-fs-vfat')) {
                 fsSet.add('vfat');
             }
-
-            if (has('ntfs-3g') && has('kmod-fs-ntfs3') && has('ntfs-3g-utils')) {
+            
+            if (has('ntfs-3g-utils') && (has('ntfs-3g') || has('kmod-fs-ntfs3'))) {
                 fsSet.add('ntfs');
             }
 
@@ -569,7 +632,7 @@ return view.extend({
         
         return Promise.all([
             this.getBlockDevices(),
-            this.getPartitions(),
+            this.getMountedPartitions(),
             L.resolveDefault(fs.stat('/usr/sbin/fdisk'), null),
             L.resolveDefault(fs.stat('/sbin/parted'), null),
         ]);
@@ -650,19 +713,19 @@ return view.extend({
         });
     },
 
-    getPartitions: function() {
+    getMountedPartitions: function() {
         return fs.exec('/bin/mount').then(res => {
-            let  = {};
+            let mounted = {};
             if (res && res.code === 0) {
                 let lines = res.stdout.trim().split('\n');
                 lines.forEach(line => {
                     let match = line.match(/^(\/dev\/\S+)\s+on\s+(\S+)/);
                     if (match) {
-                        [match[1]] = match[2];
+                        mounted[match[1]] = match[2];
                     }
                 });
             }
-            return ;
+            return mounted;
         }).catch(() => {
             return {};
         });
@@ -731,37 +794,79 @@ return view.extend({
         }).catch(() => null);
     },
 
+    getDiskType: function(device) {
+        if (device.startsWith('nvme')) {
+            return 'nvme';
+        } else if (device.startsWith('sd') || device.startsWith('hd')) {
+            return 'sata';
+        } else if (device.startsWith('mmcblk')) {
+            return 'mmc';
+        }
+        return 'unknown';
+    },
+
     getDiskTemperature: function(device) {
-    var devicePath = '/dev/' + device;
-    var runSmart = function(args) {
+    const devicePath = '/dev/' + device;
+    const diskType = this.getDiskType(device);
+
+    // NVMe
+    if (diskType === 'nvme') {
+        return L.resolveDefault(fs.exec('/usr/sbin/nvme', ['smart-log', devicePath, '-o', 'json']), null)
+            .then(res => {
+                if (res && res.code === 0) {
+                    try {
+                        const data = JSON.parse(res.stdout);
+                        if (data.temperature !== undefined && data.temperature > 0) {
+                            const tempC = data.temperature - 273;
+                            if (tempC >= -50 && tempC <= 150) {
+                                return tempC + ' °C';
+                            }
+                        }
+                        if (data.temperature_sensor_1 !== undefined) {
+                            const tempC = data.temperature_sensor_1 - 273;
+                            if (tempC >= -50 && tempC <= 150) {
+                                return tempC + ' °C';
+                            }
+                        }
+                    } catch (e) {
+                        console.error('NVMe temperature parse error:', e);
+                    }
+                }
+                return null;
+            })
+            .catch(() => null);
+    }
+
+    // SATA/ATA
+    const runSmart = function(args) {
         return L.resolveDefault(fs.exec('/usr/sbin/smartctl', args), null);
     };
 
-    var attempts = [
+    const attempts = [
         ['--json=c', '-A', devicePath],
         ['--json=c', '-A', '-d', 'sat', devicePath]
     ];
 
-    var extractFromJson = function(jsonText) {
+    const extractFromJson = function(jsonText) {
         if (!jsonText) return null;
         try {
-            var obj = (typeof jsonText === 'string') ? JSON.parse(jsonText) : jsonText;
+            const obj = (typeof jsonText === 'string') ? JSON.parse(jsonText) : jsonText;
 
             if (obj.temperature) {
                 if (typeof obj.temperature === 'number') return obj.temperature + ' °C';
                 if (typeof obj.temperature === 'object' && obj.temperature.current != null)
                     return String(obj.temperature.current) + ' °C';
                 if (typeof obj.temperature === 'string') {
-                    var m = obj.temperature.match(/(\d{1,3})/);
+                    const m = obj.temperature.match(/(\d{1,3})/);
                     if (m) return m[1] + ' °C';
                 }
             }
             if (obj['temperature.current'] || obj['Temperature'] || obj['temp']) {
-                var v = obj['temperature.current'] || obj['Temperature'] || obj['temp'];
-                var mv = null;
+                const v = obj['temperature.current'] || obj['Temperature'] || obj['temp'];
+                let mv = null;
                 if (typeof v === 'number') mv = v;
                 if (typeof v === 'string') {
-                    var mm = String(v).match(/(\d{1,3})/);
+                    const mm = String(v).match(/(\d{1,3})/);
                     if (mm) mv = mm[1];
                 }
                 if (mv != null) return String(mv) + ' °C';
@@ -771,19 +876,19 @@ return view.extend({
                 return String(obj['nvme_smart_health'].temperature) + ' °C';
             }
             if (obj['nvme_smart_health']) {
-                var nv = obj['nvme_smart_health'];
+                const nv = obj['nvme_smart_health'];
                 if (nv.temperature != null) return String(nv.temperature) + ' °C';
             }
 
             if (obj.ata_smart_attributes && Array.isArray(obj.ata_smart_attributes.table)) {
-                for (var i = 0; i < obj.ata_smart_attributes.table.length; i++) {
-                    var attr = obj.ata_smart_attributes.table[i];
+                for (let i = 0; i < obj.ata_smart_attributes.table.length; i++) {
+                    const attr = obj.ata_smart_attributes.table[i];
                     if (!attr) continue;
                     if (attr.id === 194 || (attr.name && /temp/i.test(attr.name))) {
                         if (attr.raw) {
                             if (typeof attr.raw === 'object' && attr.raw.value != null) return String(attr.raw.value) + ' °C';
                             if (typeof attr.raw === 'string') {
-                                var mm = attr.raw.match(/(\d{1,3})/);
+                                const mm = attr.raw.match(/(\d{1,3})/);
                                 if (mm) return mm[1] + ' °C';
                             }
                         }
@@ -797,8 +902,8 @@ return view.extend({
                 return String(obj.smart_status.temperature) + ' °C';
             }
 
-            var txt = JSON.stringify(obj);
-            var m = txt.match(/"temperature"\s*[:=]\s*(\d{1,3})/i) ||
+            const txt = JSON.stringify(obj);
+            const m = txt.match(/"temperature"\s*[:=]\s*(\d{1,3})/i) ||
                     txt.match(/"temp"\s*[:=]\s*(\d{1,3})/i) ||
                     txt.match(/\bTemperature\b[^0-9\n\r]{0,6}[:=]?\s*(\d{1,3})/i);
             if (m && m[1]) return m[1] + ' °C';
@@ -809,26 +914,44 @@ return view.extend({
         return null;
     };
 
-    var sequence = Promise.resolve(null);
-    for (var ai = 0; ai < attempts.length; ai++) {
+    let sequence = Promise.resolve(null);
+    for (let ai = 0; ai < attempts.length; ai++) {
         (function(args) {
             sequence = sequence.then(function(found) {
                 if (found) return found;
                 return runSmart(args).then(function(res) {
                     if (!res || res.code !== 0) return null;
 
-                    var fromJson = extractFromJson(res.stdout);
+                    const fromJson = extractFromJson(res.stdout);
                     if (fromJson) return fromJson;
 
-                    var out = res.stdout || '';
-                    var rx1 = out.match(/(?:Current Drive Temperature|Temperature|Drive Temperature|Temp)[^\\d\\n\\r]{0,6}([0-9]{1,3})/i);
+                    const out = res.stdout || '';
+                    const rx1 = out.match(/(?:Current Drive Temperature|Temperature|Drive Temperature|Temp)[^\\d\\n\\r]{0,6}([0-9]{1,3})/i);
                     if (rx1 && rx1[1]) return rx1[1] + ' °C';
 
-                    var rx2 = out.match(/([0-9]{1,3})\s*°\s*C/i);
+                    const rx2 = out.match(/([0-9]{1,3})\s*°\s*C/i);
                     if (rx2 && rx2[1]) return rx2[1] + ' °C';
 
-                    var rx3 = out.match(/:?\s*([\d]{1,3})\s+C\b/);
+                    const rx3 = out.match(/:?\s*([\d]{1,3})\s+C\b/);
                     if (rx3 && rx3[1]) return rx3[1] + ' °C';
+
+                    const lines = out.split('\n');
+                    for (let li = 0; li < lines.length; li++) {
+                        const line = lines[li];
+                        if (/Temperature_Celsius/i.test(line)) {
+                            const parts = line.trim().split(/\s+/);
+                            if (parts.length > 0) {
+                                for (let pi = parts.length - 1; pi >= 0; pi--) {
+                                    if (/^\d{1,3}$/.test(parts[pi])) {
+                                        const tempVal = parseInt(parts[pi]);
+                                        if (tempVal > 0 && tempVal < 200) {
+                                            return tempVal + ' °C';
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
 
                     return null;
                 }).catch(function() { return null; });
@@ -840,7 +963,38 @@ return view.extend({
 },
 
     getSmartStatus: function(device) {
-        return L.resolveDefault(fs.exec('/usr/sbin/smartctl', ['-H', '/dev/' + device]), null)
+        const devicePath = '/dev/' + device;
+        const diskType = this.getDiskType(device);
+
+        // NVMe
+        if (diskType === 'nvme') {
+            return L.resolveDefault(fs.exec('/usr/sbin/nvme', ['smart-log', devicePath, '-o', 'json']), null)
+                .then(res => {
+                    if (res && res.code === 0) {
+                        try {
+                            const data = JSON.parse(res.stdout);
+                            if (data.critical_warning !== undefined) {
+                                if (data.critical_warning === 0) {
+                                    return { status: _('PASSED'), color: 'var(--app-mini-diskmanager-primary)' };
+                                } else {
+                                    return { status: _('WARNING'), color: 'var(--app-mini-diskmanager-warning)' };
+                                }
+                            }
+                            if (data.media_errors !== undefined && data.media_errors > 0) {
+                                return { status: _('ERRORS'), color: 'var(--app-mini-diskmanager-danger)' };
+                            }
+                            return { status: _('OK'), color: 'var(--app-mini-diskmanager-primary)' };
+                        } catch (e) {
+                            console.error('NVMe S.M.A.R.T. parse error:', e);
+                        }
+                    }
+                    return { status: '-', color: 'var(--text-color-secondary)' };
+                })
+                .catch(() => ({ status: '-', color: 'var(--text-color-secondary)' }));
+        }
+
+        // SATA/ATA
+        return L.resolveDefault(fs.exec('/usr/sbin/smartctl', ['-H', devicePath]), null)
             .then(res => {
                 if (res && res.code === 0) {
                     if (res.stdout.match(/PASSED/i)) {
@@ -851,6 +1005,182 @@ return view.extend({
                 }
                 return { status: '-', color: 'var(--text-color-secondary)' };
             }).catch(() => ({ status: '-', color: 'var(--text-color-secondary)' }));
+    },
+
+    // Convert hours
+    formatPowerOnTime: function(hours) {
+        if (!hours || hours === 0) return '-';
+        
+        let totalHours = parseInt(hours);
+        let days = Math.floor(totalHours / 24);
+        let remainingHours = totalHours % 24;
+        
+        let years = Math.floor(days / 365);
+        let remainingDays = days % 365;
+        let months = Math.floor(remainingDays / 30);
+        remainingDays = remainingDays % 30;
+        
+        let parts = [];
+        if (years > 0) parts.push(years + ' ' + (years === 1 ? _('year') : _('years')));
+        if (months > 0) parts.push(months + ' ' + (months === 1 ? _('month') : _('months')));
+        if (remainingDays > 0) parts.push(remainingDays + ' ' + (remainingDays === 1 ? _('day') : _('days')));
+        if (remainingHours > 0 && parts.length === 0) parts.push(remainingHours + ' ' + (remainingHours === 1 ? _('hour') : _('hours')));
+        
+        return parts.join(', ') || totalHours + ' ' + _('hours');
+    },
+
+    getDetailedSmartInfo: function(device) {
+        const devicePath = '/dev/' + device;
+        const diskType = this.getDiskType(device);
+
+        if (diskType === 'nvme') {
+            // NVMe
+            return L.resolveDefault(fs.exec('/usr/sbin/nvme', ['smart-log', devicePath, '-o', 'json']), null)
+                .then(res => {
+                    if (res && res.code === 0) {
+                        try {
+                            const data = JSON.parse(res.stdout);
+                            return {
+                                type: 'nvme',
+                                raw: data,
+                                attributes: [
+                                    {
+                                        name: _('Critical Warning'),
+                                        value: data.critical_warning || 0,
+                                        status: (data.critical_warning === 0) ? 'OK' : 'WARNING'
+                                    },
+                                    {
+                                        name: _('Temperature'),
+                                        value: data.temperature ? (data.temperature - 273) + ' °C' : '-',
+                                        status: 'INFO'
+                                    },
+                                    {
+                                        name: _('Available Spare'),
+                                        value: data.avail_spare !== undefined ? data.avail_spare + '%' : '-',
+                                        status: (data.avail_spare >= 10) ? 'OK' : 'WARNING'
+                                    },
+                                    {
+                                        name: _('Available Spare Threshold'),
+                                        value: data.spare_thresh !== undefined ? data.spare_thresh + '%' : '-',
+                                        status: 'INFO'
+                                    },
+                                    {
+                                        name: _('Percentage Used'),
+                                        value: data.percent_used !== undefined ? data.percent_used + '%' : '-',
+                                        status: (data.percent_used < 80) ? 'OK' : 'WARNING'
+                                    },
+                                    {
+                                        name: _('Data Units Read'),
+                                        value: data.data_units_read || '-',
+                                        status: 'INFO'
+                                    },
+                                    {
+                                        name: _('Data Units Written'),
+                                        value: data.data_units_written || '-',
+                                        status: 'INFO'
+                                    },
+                                    {
+                                        name: _('Host Read Commands'),
+                                        value: data.host_read_commands || '-',
+                                        status: 'INFO'
+                                    },
+                                    {
+                                        name: _('Host Write Commands'),
+                                        value: data.host_write_commands || '-',
+                                        status: 'INFO'
+                                    },
+                                    {
+                                        name: _('Controller Busy Time'),
+                                        value: data.controller_busy_time || '-',
+                                        status: 'INFO'
+                                    },
+                                    {
+                                        name: _('Power Cycles'),
+                                        value: data.power_cycles || '-',
+                                        status: 'INFO'
+                                    },
+                                    {
+                                        name: _('Power On Hours'),
+                                        value: data.power_on_hours || '-',
+                                        status: 'INFO'
+                                    },
+                                    {
+                                        name: _('Unsafe Shutdowns'),
+                                        value: data.unsafe_shutdowns || '-',
+                                        status: (data.unsafe_shutdowns > 100) ? 'WARNING' : 'INFO'
+                                    },
+                                    {
+                                        name: _('Media Errors'),
+                                        value: data.media_errors || '0',
+                                        status: (data.media_errors > 0) ? 'ERROR' : 'OK'
+                                    },
+                                    {
+                                        name: _('Error Log Entries'),
+                                        value: data.num_err_log_entries || '0',
+                                        status: (data.num_err_log_entries > 0) ? 'WARNING' : 'OK'
+                                    }
+                                ]
+                            };
+                        } catch (e) {
+                            console.error('Parse NVMe S.M.A.R.T. error:', e);
+                            return null;
+                        }
+                    }
+                    return null;
+                })
+                .catch(err => {
+                    console.error('NVMe S.M.A.R.T. fetch error:', err);
+                    return null;
+                });
+        } else {
+            // SATA/ATA
+            return L.resolveDefault(fs.exec('/usr/sbin/smartctl', ['-A', '-j', devicePath]), null)
+                .then(res => {
+                    if (res && res.code === 0) {
+                        try {
+                            const data = JSON.parse(res.stdout);
+                            let attributes = [];
+                            
+                            if (data.ata_smart_attributes && data.ata_smart_attributes.table) {
+                                attributes = data.ata_smart_attributes.table.map(attr => {
+                                    let status = 'INFO';
+                                    if (attr.thresh && attr.value < attr.thresh) {
+                                        status = 'ERROR';
+                                    } else if (attr.worst && attr.value < attr.worst + 10) {
+                                        status = 'WARNING';
+                                    } else if (attr.value >= 100) {
+                                        status = 'OK';
+                                    }
+
+                                    return {
+                                        id: attr.id,
+                                        name: attr.name || 'Unknown',
+                                        value: attr.value || '-',
+                                        worst: attr.worst || '-',
+                                        thresh: attr.thresh || '-',
+                                        raw: (attr.raw && attr.raw.value !== undefined) ? attr.raw.value : (attr.raw || '-'),
+                                        status: status
+                                    };
+                                });
+                            }
+
+                            return {
+                                type: 'sata',
+                                raw: data,
+                                attributes: attributes
+                            };
+                        } catch (e) {
+                            console.error('Parse SATA S.M.A.R.T. error:', e);
+                            return null;
+                        }
+                    }
+                    return null;
+                })
+                .catch(err => {
+                    console.error('SATA S.M.A.R.T. fetch error:', err);
+                    return null;
+                });
+        }
     },
 
     getDiskInfo: function(device) {
@@ -1158,7 +1488,7 @@ return view.extend({
         return partTypeClass;
     },
 
-    isDisk: function(diskDevice) {
+    isDiskMounted: function(diskDevice) {
         if (!diskDevice || !this.diskData[diskDevice]) return false;
         let diskInfo = this.diskData[diskDevice];
         if (!diskInfo.partitions) return false;
@@ -1170,12 +1500,12 @@ return view.extend({
         return false;
     },
 
-    isPartition: function(partition) {
+    isPartitionMounted: function(partition) {
         if (!partition) return false;
         return partition.mountpoint && partition.mountpoint !== '';
     },
 
-    hasAnyPartition: function(diskDevice) {
+    hasAnyPartitionMounted: function(diskDevice) {
         if (!diskDevice || !this.diskData[diskDevice]) return false;
         let diskInfo = this.diskData[diskDevice];
         if (!diskInfo.partitions) return false;
@@ -1229,7 +1559,7 @@ return view.extend({
             return false;
         }
 
-        if (this.isPartition(partition)) {
+        if (this.isPartitionMounted(partition)) {
             return false;
         }
 
@@ -1328,7 +1658,7 @@ return view.extend({
 
     render: function(data) {
         let devices = data[0] || [];
-        this.Partitions = data[1] || {};
+        this.mountedPartitions = data[1] || {};
 
         let diskSelect = E('select', {
             'class': 'cbi-input-select',
@@ -1373,6 +1703,17 @@ return view.extend({
                         'click': ui.createHandlerFn(this, this.unmountDisk),
                         'disabled': 'disabled'
                     }, _('Unmount'))
+                ])
+            ]),
+            E('div', {}, [
+                E('label', {}, _('S.M.A.R.T. Status') + ':'),
+                E('span', {'class': 'control-group'}, [
+                    E('button', {
+                        'id': 'btn-smart',
+                        'class': 'btn cbi-button-action',
+                        'click': ui.createHandlerFn(this, this.showSmartDialog),
+                        'disabled': 'disabled'
+                    }, _('Show'))
                 ])
             ]),
             E('div', {}, [
@@ -1448,8 +1789,15 @@ return view.extend({
                 const alreadySelected = segment.classList.contains('selected');
                 document.querySelectorAll('.partition-segment').forEach(s => s.classList.remove('selected'));
 
+                const allCheckboxes = document.querySelectorAll('input[name^="partition_select_"]');
+                allCheckboxes.forEach(cb => cb.checked = false);
+
                 if (alreadySelected) {
                     this.selectedUnallocated = null;
+                    const noTableCheckbox = document.querySelector('input[name="unallocated_select"]');
+                    if (noTableCheckbox) {
+                        noTableCheckbox.checked = false;
+                    }
                 } else {
                     segment.classList.add('selected');
                     this.selectedUnallocated = {
@@ -1458,6 +1806,10 @@ return view.extend({
                         end: diskSize,
                         index: 0
                     };
+                    const noTableCheckbox = document.querySelector('input[name="unallocated_select"]');
+                    if (noTableCheckbox) {
+                        noTableCheckbox.checked = true;
+                    }
                 }
                 this.selectedPartition = null;
                 this.updateActionButtons();
@@ -1558,8 +1910,15 @@ return view.extend({
                 const alreadySelected = segment.classList.contains('selected');
                 document.querySelectorAll('.partition-segment').forEach(s => s.classList.remove('selected'));
 
+                const allCheckboxes = document.querySelectorAll('input[name^="partition_select_"]');
+                allCheckboxes.forEach(cb => cb.checked = false);
+
                 if (alreadySelected) {
                     this.selectedUnallocated = null;
+                    const noTableCheckbox = document.querySelector('input[name="unallocated_select"]');
+                    if (noTableCheckbox) {
+                        noTableCheckbox.checked = false;
+                    }
                 } else {
                     segment.classList.add('selected');
                     this.selectedUnallocated = {
@@ -1568,6 +1927,10 @@ return view.extend({
                         end: totalSize,
                         index: 0
                     };
+                    const noTableCheckbox = document.querySelector('input[name="unallocated_select"]');
+                    if (noTableCheckbox) {
+                        noTableCheckbox.checked = true;
+                    }
                 }
                 this.selectedPartition = null;
                 this.updateActionButtons();
@@ -1647,6 +2010,7 @@ return view.extend({
 
         let barContainer = E('div', {'class': 'disk-partition-bar'});
         let usedTypes = new Set();
+        let unallocCounter = 0;
 
         for (let i = 0; i < partitions.length; i++) {
             let part = partitions[i];
@@ -1734,10 +2098,40 @@ return view.extend({
                 'data-partition-end': part.end
             });
 
+            if (isUnallocated) {
+                segment.setAttribute('data-unallocated-index', unallocCounter);
+            }
+
+            if (!isUnallocated) {
+                segment.addEventListener('click', (ev) => {
+                    let partPath = this.getPartitionPath(diskInfo.device, part.number);
+                    let partName = partPath.replace('/dev/', '');
+                    let checkbox = document.querySelector('.partition-select-checkbox[data-partition="' + partName + '"]');
+                    
+                    if (checkbox && !checkbox.disabled) {
+                        checkbox.checked = !checkbox.checked;
+                        checkbox.dispatchEvent(new Event('click'));
+                    }
+                }, false);
+            } else {
+                segment.addEventListener('click', (ev) => {
+                    let unallocIndex = segment.getAttribute('data-unallocated-index');
+                    let checkbox = document.querySelector('input[name="unallocated_select"][data-unallocated-index="' + unallocIndex + '"]');
+                    
+                    if (checkbox) {
+                        checkbox.checked = !checkbox.checked;
+                        checkbox.dispatchEvent(new Event('click'));
+                    }
+                }, false);
+            }
+
             // Magic 8%
             if (percentage < 8) {
                 segment.setAttribute('title', partitionLabel + ' — ' + this.formatSize(part.size));
                 barContainer.appendChild(segment);
+                if (isUnallocated) {
+                    unallocCounter++;
+                }
                 continue;
             }
 
@@ -1787,6 +2181,16 @@ return view.extend({
                                 border-radius: 2px;
                             `
                         });
+                        
+                        innerSegment.addEventListener('click', (ev) => {
+                            ev.stopPropagation();
+                            let checkbox = document.querySelector('.partition-select-checkbox[data-partition="' + lp.name + '"]');
+                            if (checkbox && !checkbox.disabled) {
+                                checkbox.checked = !checkbox.checked;
+                                checkbox.dispatchEvent(new Event('click'));
+                            }
+                        }, false);
+                        
                         // Magic 8%
                         if (lpPercentage < 8) {
                             innerSegment.setAttribute('title', '/dev/' + lp.name + ' — ' + this.formatSize(lp.size));
@@ -1889,6 +2293,10 @@ return view.extend({
             }
 
             barContainer.appendChild(segment);
+            
+            if (isUnallocated) {
+                unallocCounter++;
+            }
         }
 
         let typeLabels = {
@@ -2536,7 +2944,7 @@ return view.extend({
 
     updateActionButtons: function() {
         if (!this.selectedDisk) {
-            ['btn-mount', 'btn-unmount', 'btn-create', 'btn-resize', 'btn-delete', 'btn-format', 'btn-wipe'].forEach(id => {
+            ['btn-mount', 'btn-unmount', 'btn-smart', 'btn-create', 'btn-resize', 'btn-delete', 'btn-format', 'btn-wipe'].forEach(id => {
                 let btn = document.getElementById(id);
                 if (btn) btn.setAttribute('disabled', 'disabled');
             });
@@ -2547,13 +2955,14 @@ return view.extend({
         let hasPartition = !!this.selectedPartition;
         let hasUnallocated = !!this.selectedUnallocated;
 
-        let isSelectedPartition = hasPartition && this.isPartition(this.selectedPartition);
-        let hasAnyPartition = this.hasAnyPartition(this.selectedDisk);
+        let isSelectedPartitionMounted = hasPartition && this.isPartitionMounted(this.selectedPartition);
+        let hasAnyMountedPartition = this.hasAnyPartitionMounted(this.selectedDisk);
         let totalUnallocated = diskInfo ? this.getTotalUnallocatedSpace(diskInfo) : 0;
         let hasPartitionTable = diskInfo && diskInfo.hasPartitionTable;
 
         let mountBtn = document.getElementById('btn-mount');
         let unmountBtn = document.getElementById('btn-unmount');
+        let smartBtn = document.getElementById('btn-smart');
         let createBtn = document.getElementById('btn-create');
         let resizeBtn = document.getElementById('btn-resize');
         let deleteBtn = document.getElementById('btn-delete');
@@ -2564,7 +2973,7 @@ return view.extend({
             this.getPartitionType(this.selectedPartition, diskInfo) === 'extended';
 
         if (mountBtn) {
-            if (!hasPartition || isSelectedPartition || isExtendedSelected) {
+            if (!hasPartition || isSelectedPartitionMounted || isExtendedSelected) {
                 mountBtn.setAttribute('disabled', 'disabled');
             } else {
                 mountBtn.removeAttribute('disabled');
@@ -2572,15 +2981,19 @@ return view.extend({
         }
 
         if (unmountBtn) {
-            if (!hasPartition || !isSelectedPartition) {
+            if (!hasPartition || !isSelectedPartitionMounted) {
                 unmountBtn.setAttribute('disabled', 'disabled');
             } else {
                 unmountBtn.removeAttribute('disabled');
             }
         }
 
+        if (smartBtn) {
+            smartBtn.removeAttribute('disabled');
+        }
+
         if (createBtn) {            
-            if (!hasAnyPartition && (hasUnallocated || isExtendedSelected)) {
+            if (hasUnallocated || isExtendedSelected) {
                 createBtn.removeAttribute('disabled');
             } else {
                 createBtn.setAttribute('disabled', 'disabled');
@@ -2596,7 +3009,7 @@ return view.extend({
         }
 
         if (deleteBtn) {
-            if (hasAnyPartition || !hasPartition || hasUnallocated || this.wipeAllEnabled) {
+            if (isSelectedPartitionMounted || !hasPartition || hasUnallocated || this.wipeAllEnabled) {
                 deleteBtn.setAttribute('disabled', 'disabled');
             } else {
                 deleteBtn.removeAttribute('disabled');
@@ -2604,7 +3017,7 @@ return view.extend({
         }
 
         if (formatBtn) {
-            if (hasAnyPartition || !hasPartition || hasUnallocated || isExtendedSelected) {
+            if (isSelectedPartitionMounted || !hasPartition || hasUnallocated || isExtendedSelected) {
                 formatBtn.setAttribute('disabled', 'disabled');
             } else {
                 formatBtn.removeAttribute('disabled');
@@ -2612,7 +3025,7 @@ return view.extend({
         }
 
         if (wipeBtn) {
-            if (!this.wipeAllEnabled || this.hasDdSupport === false || hasAnyPartition) {
+            if (!this.wipeAllEnabled || this.hasDdSupport === false || hasAnyMountedPartition) {
                 wipeBtn.setAttribute('disabled', 'disabled');
             } else {
                 wipeBtn.removeAttribute('disabled');
@@ -2623,7 +3036,7 @@ return view.extend({
         if (wipeCheckbox) {
             let hasPartitions = diskInfo && diskInfo.partitions && diskInfo.partitions.length > 0;
             
-            if (hasAnyPartition || !hasPartitions) {
+            if (hasAnyMountedPartition || !hasPartitions) {
                 wipeCheckbox.disabled = true;
                 wipeCheckbox.checked = false;
                 this.wipeAllEnabled = false;
@@ -2633,14 +3046,337 @@ return view.extend({
         }
     },
 
-    showCreatePartitionDialog: function() {
+    showSmartDialog: function() {
         if (!this.selectedDisk) {
             ui.addNotification(null, E('p', _('Please select a disk first')), 'warning');
             return;
         }
 
-        if (this.hasAnyPartitionMounted(this.selectedDisk)) {
-            ui.addNotification(null, E('p', _('Cannot create partition on mounted disk. Please unmount first.')), 'warning');
+        let devicePath = '/dev/' + this.selectedDisk;
+        const diskType = this.getDiskType(this.selectedDisk);
+
+        ui.showModal(_('S.M.A.R.T. Status') + ' - ' + devicePath, [
+            E('div', {'class': 'cbi-section'}, [
+                E('div', {'class': 'alert alert-info'}, [
+                    E('span', {'class': 'spinning'}, _('Loading S.M.A.R.T. data...'))
+                ])
+            ])
+        ]);
+
+        this.getDetailedSmartInfo(this.selectedDisk).then(smartData => {
+            if (!smartData) {
+                ui.showModal(_('S.M.A.R.T. Status') + ' - ' + devicePath, [
+                    E('div', {'class': 'cbi-section'}, [
+                        E('div', {'class': 'alert-message info'}, [
+                            E('strong', {}, _('Information')),
+                            E('br'),
+                            _('Unable to read S.M.A.R.T. data.')
+                        ])
+                    ]),
+                    E('div', {'class': 'right'}, [
+                        E('button', {'class': 'btn', 'click': ui.hideModal}, _('Close'))
+                    ])
+                ]);
+                return;
+            }
+
+            let content = [];
+
+            // NVMe
+            if (smartData.type === 'nvme') {
+                let criticalWarning = smartData.raw.critical_warning || 0;
+                let statusLabel = criticalWarning === 0 ?
+                    E('span', {'class': 'disks-info-label-status disks-info-ok-label'}, _('OK')) :
+                    E('span', {'class': 'disks-info-label-status disks-info-err-label'}, _('WARNING'));
+
+                content.push(E('h5', {
+                    'style': 'width:100% !important; text-align:center !important; margin: 1em 0;'
+                }, [
+                    _('NVMe S.M.A.R.T. Health Status') + ': ',
+                    statusLabel
+                ]));
+
+                let percentUsed = smartData.raw.percent_used !== undefined ? smartData.raw.percent_used : 0;
+                let powerOnHours = smartData.raw.power_on_hours || 0;
+                let powerOnTimeFormatted = this.formatPowerOnTime(powerOnHours);
+                
+                // Temp
+                let temperature = '-';
+                if (smartData.raw.temperature !== undefined && smartData.raw.temperature > 0) {
+                    let tempC = smartData.raw.temperature - 273;
+                    if (tempC >= -50 && tempC <= 150) {
+                        temperature = tempC + ' °C';
+                    }
+                }
+                
+                content.push(E('table', {'class': 'table', 'style': 'margin: 1em 0;'}, [
+                    E('tr', {'class': 'tr'}, [
+                        E('td', {'class': 'td left', 'style': 'width: 33%;'}, [_('Power On Time')]),
+                        E('td', {'class': 'td'}, [
+                            E('div', {'style': 'text-align: left;'}, [
+                                powerOnTimeFormatted,
+                                E('span', {'style': 'color: var(--text-color-secondary); margin-left: 8px;'}, 
+                                    '(' + powerOnHours + ' ' + _('h') + ')')
+                            ])
+                        ])
+                    ]),
+                    E('tr', {'class': 'tr'}, [
+                        E('td', {'class': 'td left', 'style': 'width: 33%;'}, [_('Temperature')]),
+                        E('td', {'class': 'td'}, [
+                            E('div', {'style': 'text-align: left;'}, [
+                                temperature
+                            ])
+                        ])
+                    ]),
+                    E('tr', {'class': 'tr'}, [
+                        E('td', {'class': 'td left', 'style': 'width: 33%;'}, [_('Disk Usage')]),
+                        E('td', {'class': 'td'}, [
+                            E('div', {'class': 'right'}, [
+                                E('div', {
+                                    'class': 'cbi-progressbar',
+                                    'title': percentUsed + '% ' + ' / ' + (100 - percentUsed) + '% '
+                                }, E('div', {
+                                    'style': 'width:' + percentUsed + '%; background-color: ' +
+                                        (percentUsed >= 95 ? 'var(--app-mini-diskmanager-danger)' :
+                                         percentUsed >= 80 ? 'var(--app-mini-diskmanager-warning)' :
+                                         'var(--app-mini-diskmanager-primary)') + ';'
+                                })),
+                            ])
+                        ])
+                    ])
+                ]));
+
+                // NVMe
+                let nvmeTable = E('table', {
+                    'class': 'table',
+                    'style': 'width: 100%;'
+                }, [
+                    E('tr', {'class': 'tr table-titles'}, [
+                        E('th', {'class': 'th left', 'style': 'width: 60%;'}, _('Attribute')),
+                        E('th', {'class': 'th left', 'style': 'width: 40%;'}, _('Value'))
+                    ])
+                ]);
+
+                for (let attr of smartData.attributes) {
+                    let lineStyle = 'tr';
+                    if (attr.status === 'ERROR') {
+                        lineStyle = 'tr disks-info-err';
+                    } else if (attr.status === 'WARNING') {
+                        lineStyle = 'tr disks-info-warn';
+                    }
+
+                    nvmeTable.appendChild(
+                        E('tr', {'class': lineStyle}, [
+                            E('td', {'class': 'td left'}, attr.name),
+                            E('td', {'class': 'td left'}, 
+                                String(attr.value))
+                        ])
+                    );
+                }
+
+                content.push(
+                    E('div', {'style': 'max-height: 60vh; min-height: 500px; overflow-y: auto;'}, [
+                        nvmeTable
+                    ])
+                );
+
+            } else {
+                // SATA/ATA
+                if (!smartData.raw.smart_status || !smartData.attributes || 
+                    smartData.attributes.length === 0) {
+                    ui.showModal(_('S.M.A.R.T. Status') + ' - ' + devicePath, [
+                        E('div', {'class': 'cbi-section'}, [
+                            E('div', {'class': 'alert-message info'}, [
+                                E('strong', {}, _('Information')),
+                                E('br'),
+                                _('No S.M.A.R.T. attributes found.')
+                            ])
+                        ]),
+                        E('div', {'class': 'right'}, [
+                            E('button', {'class': 'btn', 'click': ui.hideModal}, _('Close'))
+                        ])
+                    ]);
+                    return;
+                }
+
+                let smartCriticalAttrs = [5, 11, 183, 184, 187, 196, 197, 198, 200, 202, 220];
+                let smartTempAttrs = [190, 194];
+                let diskTempWarning = 60;
+
+                if (smartData.raw.temperature && smartData.raw.temperature.op_limit_max) {
+                    diskTempWarning = smartData.raw.temperature.op_limit_max;
+                }
+
+                // Status SMART
+                let smartStatusLabel = smartData.raw.smart_status.passed ?
+                    E('span', {'class': 'disks-info-label-status disks-info-ok-label'}, _('PASSED')) :
+                    E('span', {'class': 'disks-info-label-status disks-info-err-label'}, _('FAILED'));
+
+                content.push(E('h5', {
+                    'style': 'width:100% !important; text-align:center !important; margin: 1em 0;'
+                }, [
+                    _('S.M.A.R.T. overall-health self-assessment test result: '),
+                    smartStatusLabel
+                ]));
+
+                let powerOnHours = 0;
+                let temperature = '-';
+                let wearPercent = null;
+                
+                for (let attr of smartData.attributes) {
+                    if (attr.id === 9) {
+                        powerOnHours = typeof attr.raw === 'number' ? attr.raw : 
+                                      (typeof attr.raw === 'string' ? parseInt(attr.raw) : 0);
+                    }
+                    if (attr.id === 194) {
+                        let tempValue = typeof attr.raw === 'number' ? attr.raw : 
+                                       (typeof attr.raw === 'string' ? parseInt(attr.raw) : 0);
+                        if (tempValue > 0 && tempValue < 200) {
+                            temperature = tempValue + ' °C';
+                        }
+                    }
+                    if (attr.id === 177 || attr.id === 233 || 
+                        (attr.name && (attr.name.includes('Wear') || attr.name.includes('Wearout')))) {
+                        wearPercent = 100 - attr.value;
+                        if (wearPercent < 0) wearPercent = 0;
+                        if (wearPercent > 100) wearPercent = 100;
+                    }
+                }
+                
+                let powerOnTimeFormatted = this.formatPowerOnTime(powerOnHours);
+                
+                let statusTableRows = [
+                    E('tr', {'class': 'tr'}, [
+                        E('td', {'class': 'td left', 'style': 'width: 33%;'}, [_('Power On Time')]),
+                        E('td', {'class': 'td'}, [
+                            E('div', {'style': 'text-align: left;'}, [
+                                powerOnTimeFormatted,
+                                E('span', {'style': 'color: var(--text-color-secondary); margin-left: 8px; font-size: 90%;'}, 
+                                    '(' + powerOnHours + ' ' + _('hours') + ')')
+                            ])
+                        ])
+                    ]),
+                    E('tr', {'class': 'tr'}, [
+                        E('td', {'class': 'td left', 'style': 'width: 33%;'}, [_('Temperature')]),
+                        E('td', {'class': 'td'}, [
+                            E('div', {'style': 'text-align: left;'}, [
+                                temperature
+                            ])
+                        ])
+                    ])
+                ];
+                
+                if (wearPercent !== null) {
+                    statusTableRows.push(
+                        E('tr', {'class': 'tr'}, [
+                            E('td', {'class': 'td left', 'style': 'width: 33%;'}, [_('Disk Wear Level')]),
+                            E('td', {'class': 'td'}, [
+                                E('div', {'class': 'right'}, [
+                                    E('div', {
+                                        'class': 'cbi-progressbar',
+                                        'title': wearPercent.toFixed(1) + '% ' + _('worn') + ' / ' + (100 - wearPercent).toFixed(1) + '% ' + _('remaining')
+                                    }, E('div', {
+                                        'style': 'width:' + wearPercent + '%; background-color: ' +
+                                            (wearPercent >= 95 ? 'var(--app-mini-diskmanager-danger)' :
+                                             wearPercent >= 80 ? 'var(--app-mini-diskmanager-warning)' :
+                                             'var(--app-mini-diskmanager-primary)') + ';'
+                                    })),
+                                    E('div', {'class': 'right'}, [
+                                        E('div', {'style': 'text-align:center; font-size:90%;'}, [
+                                            wearPercent.toFixed(1) + '% ' + _('worn') + ' / ' + (100 - wearPercent).toFixed(1) + '% ' + _('remaining')
+                                        ])
+                                    ])
+                                ])
+                            ])
+                        ])
+                    );
+                }
+                
+                content.push(E('table', {'class': 'table', 'style': 'margin: 1em 0;'}, statusTableRows));
+
+                // SATA
+                let smartAttrsTable = E('table', {
+                    'class': 'table',
+                    'style': 'width: 100%;'
+                }, [
+                    E('tr', {'class': 'tr table-titles'}, [
+                        E('th', {'class': 'th right'}, _('ID')),
+                        E('th', {'class': 'th left'}, _('Attribute')),
+                        E('th', {'class': 'th left'}, _('RAW')),
+                        E('th', {'class': 'th left'}, _('VALUE')),
+                        E('th', {'class': 'th left'}, _('WORST')),
+                        E('th', {'class': 'th left'}, _('THRESH'))
+                    ])
+                ]);
+
+                for (let attr of smartData.attributes) {
+                    let lineStyle = 'tr';
+                    if (attr.status === 'ERROR') {
+                        lineStyle = 'tr disks-info-err';
+                    } else if (attr.status === 'WARNING') {
+                        lineStyle = 'tr disks-info-warn';
+                    } else if (smartCriticalAttrs.includes(attr.id) && 
+                               typeof attr.raw === 'number' && attr.raw > 0) {
+                        lineStyle = 'tr disks-info-warn';
+                    } else if (smartTempAttrs.includes(attr.id)) {
+                        let tempValue = typeof attr.raw === 'string' ? 
+                            parseInt(attr.raw.split(' ')[0]) : attr.raw;
+                        if (tempValue >= diskTempWarning) {
+                            lineStyle = 'tr disks-info-warn';
+                        }
+                    }
+
+                    smartAttrsTable.appendChild(
+                        E('tr', {'class': lineStyle}, [
+                            E('td', {'class': 'td right'}, String(attr.id)),
+                            E('td', {'class': 'td left'}, 
+                                attr.name ? attr.name.replace(/_/g, ' ') : 'Unknown'),
+                            E('td', {'class': 'td left', 'style': 'font-weight: bold;'}, 
+                                String(attr.raw)),
+                            E('td', {'class': 'td left'}, 
+                                String(attr.value).padStart(3, '0')),
+                            E('td', {'class': 'td left'}, 
+                                String(attr.worst).padStart(3, '0')),
+                            E('td', {'class': 'td left'}, 
+                                String(attr.thresh).padStart(3, '0'))
+                        ])
+                    );
+                }
+
+                content.push(
+                    E('div', {'style': 'max-height: 500px; overflow-y: auto;'}, [
+                        smartAttrsTable
+                    ])
+                );
+            }
+
+            ui.showModal(_('S.M.A.R.T. Status') + ' - ' + devicePath, [
+                E('div', {'class': 'cbi-section'}, content),
+                E('div', {'class': 'right'}, [
+                    E('button', {'class': 'btn', 'click': ui.hideModal}, _('Close'))
+                ])
+            ]);
+
+        }).catch(err => {
+            console.error('S.M.A.R.T. dialog error:', err);
+            ui.showModal(_('S.M.A.R.T. Status') + ' - ' + devicePath, [
+                E('div', {'class': 'cbi-section'}, [
+                    E('div', {'class': 'alert-message warning'}, [
+                        E('strong', {}, _('Warning')),
+                        E('br'),
+                        _('Error reading S.M.A.R.T. data.')
+                    ])
+                ]),
+                E('div', {'class': 'right'}, [
+                    E('button', {'class': 'btn', 'click': ui.hideModal}, _('Close'))
+                ])
+            ]);
+        });
+    },
+
+    showCreatePartitionDialog: function() {
+        if (!this.selectedDisk) {
+            ui.addNotification(null, E('p', _('Please select a disk first')), 'warning');
             return;
         }
 
@@ -3155,11 +3891,6 @@ return view.extend({
         try {
             if (!this.selectedDisk) {
                 ui.addNotification(null, E('p', _('Please select a disk first')), 'warning');
-                return;
-            }
-
-            if (this.hasAnyPartitionMounted(this.selectedDisk)) {
-                ui.addNotification(null, E('p', _('Cannot create partition on mounted disk. Please unmount first.')), 'warning');
                 return;
             }
 
@@ -3805,12 +4536,7 @@ return view.extend({
                     'style': 'margin-bottom: 0.5em; text-align: left;'
                 }, [
                     E('small', { 'style': 'font-size: 0.9em; color: var(--text-color-medium, #111);' }, [
-                        _('Temperature') + ': ',
-                        E('span', {}, [diskInfo.temperature || '-']),
-                        ' | ' + _('S.M.A.R.T. Status') + ': ',
-                        E('span', { 'style': 'color: ' + diskInfo.smartStatus.color }, 
-                            [diskInfo.smartStatus.status]),
-                        ' | ' + _('Mount Status') + ': ',
+                        _('Mount Status') + ': ',
                         E('span', { 'style': 'color: ' + (this.hasAnyPartitionMounted(this.selectedDisk) ? 
                             'var(--app-mini-diskmanager-primary)' : 'var(--text-color-secondary)') }, 
                             [(this.hasAnyPartitionMounted(this.selectedDisk) ? _('Mounted') : _('Not mounted')).toUpperCase()])
@@ -3820,8 +4546,21 @@ return view.extend({
 
             let partitionLayoutSection = E('div', {'class': 'partition-layout-section'}, [
                 E('div', {'class': 'ifacebox', 'style': 'width:98%;table-layout:fixed;'}, [
-                    E('div', {'class': 'ifacebox-head', 'style': 'font-weight:bold;background:#f8f8f8;padding:8px;text-align:center;'}, 
-                        _('Partition Layout')),
+                    E('div', {
+                        'class': 'ifacebox-head', 
+                        'style': 'font-weight:bold;background:#f8f8f8;padding:8px;text-align:center;',
+                        'click': ui.createHandlerFn(this, function(ev) {
+                            if (this.hasAnyPartitionMounted(this.selectedDisk)) {
+                                return;
+                            }
+                            
+                            let wipeCheckbox = document.getElementById('wipeall-checkbox');
+                            if (wipeCheckbox && !wipeCheckbox.disabled) {
+                                wipeCheckbox.checked = !wipeCheckbox.checked;
+                                wipeCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
+                            }
+                        })
+                    }, _('Partition Layout')),
                     E('div', {'class': 'ifacebox-body'}, [
                         this.renderPartitionBar(diskInfo)
                     ])

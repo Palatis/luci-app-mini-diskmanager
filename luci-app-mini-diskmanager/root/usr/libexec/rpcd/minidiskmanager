@@ -388,8 +388,6 @@ create_partition_impl() {
         return 1
     fi
 
-    unmount_device "$disk"
-
     parted_out=$(/sbin/parted -s "$disk" print 2>&1 || true)
     if echo "$parted_out" | grep -qi "unrecognised disk label\|unrecognized disk label"; then
         log_msg "Disk has no partition table, creating $layout (Dysk nie ma tablicy partycji, tworzenie $layout)"
@@ -748,7 +746,11 @@ delete_partition() {
     
     log_msg "Is extended partition (Czy partycja rozszerzona): '$is_extended'"
 
-    unmount_device "$DEVICE"
+    if is_device_mounted "$partition_path"; then
+        log_msg "Unmounting partition $partition_path before deletion (Odmontowywanie partycji $partition_path przed usunięciem)"
+        umount -l "$partition_path" >> "$LOG_FILE" 2>&1 || umount -f "$partition_path" >> "$LOG_FILE" 2>&1
+        sleep 1
+    fi
 
     base_name=$(basename "$DEVICE")
     if [ "${base_name#nvme}" != "$base_name" ] || [ "${base_name#mmcblk}" != "$base_name" ]; then

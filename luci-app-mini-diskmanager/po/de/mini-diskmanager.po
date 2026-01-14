@@ -708,3 +708,83 @@ msgstr "Datei konnte nicht gelöscht werden"
 
 msgid "alternative"
 msgstr "Alternative"
+
+# SMART
+
+msgid "Attribute"
+msgstr "Attribut"
+
+msgid "ID"
+msgstr "ID"
+
+msgid "RAW"
+msgstr "RAW"
+
+msgid "VALUE"
+msgstr "WERT"
+
+msgid "WORST"
+msgstr "SCHLECHTESTER"
+
+msgid "THRESH"
+msgstr "SCHWELLE"
+
+msgid "Value"
+msgstr "Wert"
+
+msgid "NVMe S.M.A.R.T. Health Status"
+msgstr "NVMe S.M.A.R.T. Gesundheitsstatus"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "WARNING"
+msgstr "WARNUNG"
+
+msgid "Power On Time"
+msgstr "Betriebszeit"
+
+msgid "Power On Hours"
+msgstr "Betriebsstunden"
+
+msgid "Disk Usage"
+msgstr "Festplattennutzung"
+
+msgid "Disk Wear Level"
+msgstr "Abnutzungsgrad der Festplatte"
+
+msgid "Available Spare"
+msgstr "Verfügbare Reserve"
+
+msgid "Available Spare Threshold"
+msgstr "Verfügbare Reservenschwelle"
+
+msgid "hour"
+msgstr "Stunde"
+
+msgid "hours"
+msgstr "Stunden"
+
+msgid "h"
+msgstr "Std"
+
+msgid "worn"
+msgstr "abgenutzt"
+
+msgid "remaining"
+msgstr "verbleibend"
+
+msgid "S.M.A.R.T. overall-health self-assessment test result: "
+msgstr "S.M.A.R.T. Gesamtzustands-Selbstbewertungstestergebnis: "
+
+msgid "No S.M.A.R.T. attributes found."
+msgstr "Keine S.M.A.R.T.-Attribute gefunden."
+
+msgid "Loading S.M.A.R.T. data..."
+msgstr "Lade S.M.A.R.T.-Daten..."
+
+msgid "Unable to read S.M.A.R.T. data."
+msgstr "S.M.A.R.T.-Daten können nicht gelesen werden."
+
+msgid "Error reading S.M.A.R.T. data."
+msgstr "Fehler beim Lesen der S.M.A.R.T.-Daten."

@@ -182,7 +182,8 @@ return view.extend({
                 'NTFS': [
                     { name: 'ntfs-3g', label: 'ntfs-3g' },
                     { name: 'kmod-fs-ntfs3', label: 'kmod-fs-ntfs3' },
-                    { name: 'ntfs-3g-utils', label: 'ntfs-3g-utils' }
+                    { name: 'ntfs-3g-utils', label: 'ntfs-3g-utils' },
+                    { name: 'kmod-nls-utf8', label: 'kmod-nls-utf8' }
                 ],
                 'exFAT': [
                     { name: 'exfat-mkfs', label: 'exfat-mkfs' },

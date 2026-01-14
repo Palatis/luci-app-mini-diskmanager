@@ -768,3 +768,83 @@ msgstr "Effacement de disque (commande dd)"
 
 msgid "alternative"
 msgstr "alternative"
+
+# SMART
+
+msgid "Attribute"
+msgstr "Attribut"
+
+msgid "ID"
+msgstr "ID"
+
+msgid "RAW"
+msgstr "BRUT"
+
+msgid "VALUE"
+msgstr "VALEUR"
+
+msgid "WORST"
+msgstr "PIRE"
+
+msgid "THRESH"
+msgstr "SEUIL"
+
+msgid "Value"
+msgstr "Valeur"
+
+msgid "NVMe S.M.A.R.T. Health Status"
+msgstr "État de santé NVMe S.M.A.R.T."
+
+msgid "OK"
+msgstr "OK"
+
+msgid "WARNING"
+msgstr "AVERTISSEMENT"
+
+msgid "Power On Time"
+msgstr "Temps de fonctionnement"
+
+msgid "Power On Hours"
+msgstr "Heures de fonctionnement"
+
+msgid "Disk Usage"
+msgstr "Utilisation du disque"
+
+msgid "Disk Wear Level"
+msgstr "Niveau d'usure du disque"
+
+msgid "Available Spare"
+msgstr "Réserve disponible"
+
+msgid "Available Spare Threshold"
+msgstr "Seuil de réserve disponible"
+
+msgid "hour"
+msgstr "heure"
+
+msgid "hours"
+msgstr "heures"
+
+msgid "h"
+msgstr "h"
+
+msgid "worn"
+msgstr "usé"
+
+msgid "remaining"
+msgstr "restant"
+
+msgid "S.M.A.R.T. overall-health self-assessment test result: "
+msgstr "Résultat du test d'auto-évaluation de l'état général S.M.A.R.T.: "
+
+msgid "No S.M.A.R.T. attributes found."
+msgstr "Aucun attribut S.M.A.R.T. trouvé."
+
+msgid "Loading S.M.A.R.T. data..."
+msgstr "Chargement des données S.M.A.R.T..."
+
+msgid "Unable to read S.M.A.R.T. data."
+msgstr "Impossible de lire les données S.M.A.R.T."
+
+msgid "Error reading S.M.A.R.T. data."
+msgstr "Erreur lors de la lecture des données S.M.A.R.T."

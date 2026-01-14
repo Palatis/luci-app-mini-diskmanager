@@ -705,3 +705,83 @@ msgstr "Стирание диска (команда dd)"
 
 msgid "alternative"
 msgstr "альтернатива"
+
+# SMART
+
+msgid "Attribute"
+msgstr "Атрибут"
+
+msgid "ID"
+msgstr "ID"
+
+msgid "RAW"
+msgstr "СЫРОЙ"
+
+msgid "VALUE"
+msgstr "ЗНАЧЕНИЕ"
+
+msgid "WORST"
+msgstr "ХУДШЕЕ"
+
+msgid "THRESH"
+msgstr "ПОРОГ"
+
+msgid "Value"
+msgstr "Значение"
+
+msgid "NVMe S.M.A.R.T. Health Status"
+msgstr "Состояние здоровья NVMe S.M.A.R.T."
+
+msgid "OK"
+msgstr "ОК"
+
+msgid "WARNING"
+msgstr "ПРЕДУПРЕЖДЕНИЕ"
+
+msgid "Power On Time"
+msgstr "Время работы"
+
+msgid "Power On Hours"
+msgstr "Часы работы"
+
+msgid "Disk Usage"
+msgstr "Использование диска"
+
+msgid "Disk Wear Level"
+msgstr "Уровень износа диска"
+
+msgid "Available Spare"
+msgstr "Доступный резерв"
+
+msgid "Available Spare Threshold"
+msgstr "Порог доступного резерва"
+
+msgid "hour"
+msgstr "час"
+
+msgid "hours"
+msgstr "часы"
+
+msgid "h"
+msgstr "ч"
+
+msgid "worn"
+msgstr "изношено"
+
+msgid "remaining"
+msgstr "осталось"
+
+msgid "S.M.A.R.T. overall-health self-assessment test result: "
+msgstr "Результат самооценки общего состояния S.M.A.R.T.: "
+
+msgid "No S.M.A.R.T. attributes found."
+msgstr "Атрибуты S.M.A.R.T. не найдены."
+
+msgid "Loading S.M.A.R.T. data..."
+msgstr "Загрузка данных S.M.A.R.T..."
+
+msgid "Unable to read S.M.A.R.T. data."
+msgstr "Невозможно прочитать данные S.M.A.R.T."
+
+msgid "Error reading S.M.A.R.T. data."
+msgstr "Ошибка чтения данных S.M.A.R.T."
