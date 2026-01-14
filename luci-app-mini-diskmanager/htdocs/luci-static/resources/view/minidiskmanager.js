@@ -478,6 +478,55 @@ return view.extend({
     hasDdSupport: null,
     wipeAllEnabled: false,
 
+    rpcCheckOperation: rpc.declare({
+        object: 'minidiskmanager',
+        method: 'check_operation',
+        params: ['pid'],
+        expect: {}
+    }),
+
+    rpcList: rpc.declare({
+        object: 'minidiskmanager',
+        method: 'list',
+        params: [],
+        expect: {}
+    }),
+
+    rpcCreatePartition: rpc.declare({
+        object: 'minidiskmanager',
+        method: 'create_partition',
+        params: ['device', 'type', 'fstype', 'size', 'layout', 'label'],
+        expect: {}
+    }),
+
+    rpcDeletePartition: rpc.declare({
+        object: 'minidiskmanager',
+        method: 'delete_partition',
+        params: ['device', 'partition'],
+        expect: {}
+    }),
+
+    rpcFormatPartition: rpc.declare({
+        object: 'minidiskmanager',
+        method: 'format_partition',
+        params: ['device', 'fstype', 'label'],
+        expect: {}
+    }),
+
+    rpcResizePartition: rpc.declare({
+        object: 'minidiskmanager',
+        method: 'resize_partition',
+        params: ['device', 'partition', 'size'],
+        expect: {}
+    }),
+
+    rpcWipeDisk: rpc.declare({
+        object: 'minidiskmanager',
+        method: 'wipe_disk',
+        params: ['device'],
+        expect: {}
+    }),
+
     getInstalledPackages: function() {
         const tryCmd = (cmd, args) => {
             return L.resolveDefault(fs.exec(cmd, args), { code: 1, stdout: '' });
@@ -663,22 +712,45 @@ return view.extend({
     },
 
     callRpcd: function(method, params) {
-        return new Promise((resolve, reject) => {
-            L.resolveDefault(fs.exec('/bin/ubus', ['call', 'minidiskmanager', method, JSON.stringify(params)]))
-                .then(res => {
-                    if (res && res.code === 0) {
-                        try {
-                            const result = JSON.parse(res.stdout);
-                            resolve(result);
-                        } catch (e) {
-                            reject(new Error(_('Failed to parse JSON response: ') + e.message));
-                        }
-                    } else {
-                        reject(new Error(_('RPC call failed: ') + (res ? res.stderr : _('unknown error'))));
-                    }
-                })
-                .catch(err => reject(err));
-        });
+        const methodMap = {
+            'check_operation': () => this.rpcCheckOperation(params.pid),
+            'list': () => this.rpcList(),
+            'create_partition': () => this.rpcCreatePartition(
+                params.device,
+                params.type,
+                params.fstype,
+                params.size,
+                params.layout,
+                params.label
+            ),
+            'delete_partition': () => this.rpcDeletePartition(
+                params.device,
+                params.partition
+            ),
+            'format_partition': () => this.rpcFormatPartition(
+                params.device,
+                params.fstype,
+                params.label
+            ),
+            'resize_partition': () => this.rpcResizePartition(
+                params.device,
+                params.partition,
+                params.size
+            ),
+            'wipe_disk': () => this.rpcWipeDisk(params.device)
+        };
+
+        if (!methodMap[method]) {
+            return Promise.reject(new Error(_('Unknown RPC method: ') + method));
+        }
+
+        return L.resolveDefault(methodMap[method](), null)
+            .then(result => {
+                if (result === null) {
+                    return Promise.reject(new Error(_('RPC call failed: no response')));
+                }
+                return result;
+            });
     },
 
     monitorOperation: function(pid, progressMsg, successMsg, errorMsg) {

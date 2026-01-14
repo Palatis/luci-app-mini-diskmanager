@@ -40,8 +40,9 @@
 				"/bin/df -B1 *": ["exec"],
 				"/bin/mount": ["exec"],
 
-				"/usr/sbin/smartctl -iAHl scttemp -l error -l devstat --json=c /dev/*": ["exec"],
-				"/usr/sbin/smartctl -l scttempint,[0-9,p]* /dev/*": ["exec"],
+				"/usr/sbin/smartctl --json=c -A /dev/*": ["exec"],
+				"/usr/sbin/smartctl --json=c -A -d sat /dev/*": ["exec"],
+				"/usr/sbin/smartctl -i /dev/*": ["exec"],
 				"/usr/sbin/smartctl -A /dev/*": ["exec"],
 				"/usr/sbin/smartctl -A -j /dev/*": ["exec"],
 				"/usr/sbin/smartctl -H /dev/*": ["exec"],
@@ -53,6 +54,7 @@
 				"/usr/sbin/resize2fs": ["stat"],
 				"/sbin/parted": ["stat"],
 				
+				"/usr/bin/opkg list-installed": ["exec"],
 				"/usr/libexec/package-manager-call list-installed": [ "exec" ],
 				"/usr/libexec/opkg-list installed": [ "exec" ],
 				"/usr/libexec/opkg-call list-installed": [ "exec" ]
