@@ -14,7 +14,7 @@ LuCI JS Mini Disk Manager. Interface for simple disk/partition management from O
 > [!IMPORTANT]
 > ***Required Packages:***
 > 
-> luci-base, block-mount, fdisk, parted, lsblk, e2fsprogs, ntfs-3g, dosfstools, swap-utils
+> luci-base, block-mount, fdisk, parted, lsblk
 
 > [!IMPORTANT]
 > ***Supported file systems:***
@@ -31,11 +31,11 @@ LuCI JS Mini Disk Manager. Interface for simple disk/partition management from O
 
 > Disk Manager / Menedżer dysków:
 
-![](https://github.com/4IceG/Personal_data/blob/master/zrzuty/mini-diskmanager/last.png?raw=true)
+![](https://github.com/4IceG/Personal_data/blob/master/zrzuty/mini-diskmanager/Disk%20Manager%201.png?raw=true)
 
-![](https://github.com/4IceG/Personal_data/blob/master/zrzuty/mini-diskmanager/mini2.png?raw=true)
+![](https://github.com/4IceG/Personal_data/blob/master/zrzuty/mini-diskmanager/Disk%20Manager%203.png?raw=true)
 
-![](https://github.com/4IceG/Personal_data/blob/master/zrzuty/mini-diskmanager/mini3.png?raw=true)
+![](https://github.com/4IceG/Personal_data/blob/master/zrzuty/mini-diskmanager/Disk%20Manager%202.png?raw=true)
 
 ![](https://github.com/4IceG/Personal_data/blob/master/zrzuty/mini-diskmanager/minidm4.png?raw=true)
 
