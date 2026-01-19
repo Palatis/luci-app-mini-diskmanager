@@ -980,7 +980,6 @@ return view.extend({
                     });
                 })(attempts[i]);
             }
-            
             return sequence;
         }
     },
@@ -1351,7 +1350,18 @@ return view.extend({
             'Load_Friction': _('Load Friction'),
             'Load_In_Time': _('Load-in Time'),
             'Torque_Amplification_Count': _('Torque Amplification Count'),
-            'Write_Error_Rate': _('Write Error Rate')
+            'Write_Error_Rate': _('Write Error Rate'),
+            'Critical_Warning': _('Critical Warning'),
+            'Percentage_Used': _('Percentage Used'),
+            'Data_Units_Read': _('Data Units Read'),
+            'Data_Units_Written': _('Data Units Written'),
+            'Host_Read_Commands': _('Host Read Commands'),
+            'Host_Write_Commands': _('Host Write Commands'),
+            'Controller_Busy_Time': _('Controller Busy Time'),
+            'Power_Cycles': _('Power Cycles'),
+            'Unsafe_Shutdowns': _('Unsafe Shutdowns'),
+            'Media_Errors': _('Media Errors'),
+            'Error_Log_Entries': _('Error Log Entries')
         };
         if (translations[attrName]) {
             return translations[attrName];
@@ -1891,7 +1901,6 @@ return view.extend({
         if (partTypeClass === 'primary' && partNum && parseInt(partNum[0]) >= 5) {
             partTypeClass = 'logical';
         }
-
         return partTypeClass;
     },
 
@@ -1954,7 +1963,6 @@ return view.extend({
                 }
             }
         }
-
         return 0;
     },
 
@@ -2528,6 +2536,10 @@ return view.extend({
 
             if (!isUnallocated) {
                 segment.addEventListener('click', (ev) => {
+                    if (this.wipeAllEnabled) {
+                        return;
+                    }
+                    
                     let partPath = this.getPartitionPath(diskInfo.device, part.number);
                     let partName = partPath.replace('/dev/', '');
                     let checkbox = document.querySelector('.partition-select-checkbox[data-partition="' + partName + '"]');
@@ -2539,10 +2551,14 @@ return view.extend({
                 }, false);
             } else {
                 segment.addEventListener('click', (ev) => {
+                    if (this.wipeAllEnabled) {
+                        return;
+                    }
+                    
                     let unallocIndex = segment.getAttribute('data-unallocated-index');
                     let checkbox = document.querySelector('input[name="unallocated_select"][data-unallocated-index="' + unallocIndex + '"]');
                     
-                    if (checkbox) {
+                    if (checkbox && !checkbox.disabled) {
                         checkbox.checked = !checkbox.checked;
                         checkbox.dispatchEvent(new Event('click'));
                     }
@@ -2608,6 +2624,11 @@ return view.extend({
                         
                         innerSegment.addEventListener('click', (ev) => {
                             ev.stopPropagation();
+                            
+                            if (this.wipeAllEnabled) {
+                                return;
+                            }
+                            
                             let checkbox = document.querySelector('.partition-select-checkbox[data-partition="' + lp.name + '"]');
                             if (checkbox && !checkbox.disabled) {
                                 checkbox.checked = !checkbox.checked;
@@ -2855,18 +2876,28 @@ return view.extend({
                                 this.wipeAllEnabled = ev.target.checked;
                                 
                                 let partCheckboxes = document.querySelectorAll('.partition-select-checkbox');
+                                let unallocCheckboxes = document.querySelectorAll('input[name="unallocated_select"]');
                                 
                                 if (this.wipeAllEnabled) {
                                     partCheckboxes.forEach(cb => {
                                         if (!cb.disabled) {
                                             cb.checked = true;
+                                            cb.disabled = true;
                                         }
+                                    });
+                                    unallocCheckboxes.forEach(cb => {
+                                        cb.checked = true;
+                                        cb.disabled = true;
                                     });
                                 } else {
                                     partCheckboxes.forEach(cb => {
-                                        if (!cb.disabled) {
-                                            cb.checked = false;
-                                        }
+                                        let isCriticalMount = cb.hasAttribute('data-critical-mount');
+                                        cb.checked = false;
+                                        cb.disabled = isCriticalMount;
+                                    });
+                                    unallocCheckboxes.forEach(cb => {
+                                        cb.checked = false;
+                                        cb.disabled = false;
                                     });
                                     this.selectedPartition = null;
                                     this.selectedUnallocated = null;
@@ -2907,6 +2938,7 @@ return view.extend({
             
             let unallocCheckbox = E('input', {
                 'type': 'checkbox',
+                'class': 'unallocated-select-checkbox',
                 'name': 'unallocated_select',
                 'value': 'unallocated-0',
                 'aria-label': _('Select unallocated space')
@@ -3031,12 +3063,18 @@ return view.extend({
                     'data-partition': partRef.name,
                     'aria-label': '/dev/' + partRef.name
                 });
-                
+
                 if (isCriticalMount) {
                     checkbox.disabled = true;
+                    checkbox.setAttribute('data-critical-mount', 'true');
                 }
 
                 checkbox.addEventListener('click', function(ev) {
+                    if (self.wipeAllEnabled) {
+                        ev.preventDefault();
+                        return;
+                    }
+                    
                     if (ev.target.checked) {
                         self.selectedPartition = partRef;
                         self.selectedUnallocated = null;
@@ -3207,6 +3245,7 @@ return view.extend({
                     if (!isInsideExtended) {
                         let unallocCheckbox = E('input', {
                             'type': 'checkbox',
+                            'class': 'unallocated-select-checkbox',
                             'name': 'unallocated_select',
                             'value': 'unallocated-' + unallocCounter,
                             'data-unallocated-index': unallocCounter,
@@ -3416,18 +3455,18 @@ return view.extend({
         }
 
         if (createBtn) {            
-            if (hasUnallocated || isExtendedSelected) {
-                createBtn.removeAttribute('disabled');
-            } else {
+            if (this.wipeAllEnabled || (!hasUnallocated && !isExtendedSelected)) {
                 createBtn.setAttribute('disabled', 'disabled');
+            } else {
+                createBtn.removeAttribute('disabled');
             }
         }
 
         if (resizeBtn) {
-            if (hasPartition && this.canResizePartition(this.selectedPartition)) {
-                resizeBtn.removeAttribute('disabled');
-            } else {
+            if (this.wipeAllEnabled || !hasPartition || !this.canResizePartition(this.selectedPartition)) {
                 resizeBtn.setAttribute('disabled', 'disabled');
+            } else {
+                resizeBtn.removeAttribute('disabled');
             }
         }
 
@@ -3440,7 +3479,7 @@ return view.extend({
         }
 
         if (formatBtn) {
-            if (isSelectedPartitionMounted || !hasPartition || hasUnallocated || isExtendedSelected) {
+            if (isSelectedPartitionMounted || !hasPartition || hasUnallocated || isExtendedSelected || this.wipeAllEnabled) {
                 formatBtn.setAttribute('disabled', 'disabled');
             } else {
                 formatBtn.removeAttribute('disabled');
@@ -4694,7 +4733,7 @@ return view.extend({
                                 ])
                             ]),
                             E('div', {'style': 'margin-top: 5px; font-size: 12px; color: var(--text-color-secondary)'}, 
-                                _('Space reserved for root (ext2/ext3/ext4 only, default: 5%)'))
+                                _('Space reserved for root (default: 5%)'))
                         ])
                     ])
                 ]),
@@ -5256,8 +5295,7 @@ return view.extend({
                         'click': ui.createHandlerFn(this, function(ev) {
                             if (this.hasAnyPartitionMounted(this.selectedDisk)) {
                                 return;
-                            }
-                            
+                            }  
                             let wipeCheckbox = document.getElementById('wipeall-checkbox');
                             if (wipeCheckbox && !wipeCheckbox.disabled) {
                                 wipeCheckbox.checked = !wipeCheckbox.checked;

@@ -1205,3 +1205,38 @@ msgstr "Conteggio totale blocchi riservati non utilizzati"
 
 msgid "Available Reserved Space"
 msgstr "Spazio riservato disponibile"
+
+# NVMe
+
+msgid "Critical Warning"
+msgstr "Avviso critico"
+
+msgid "Percentage Used"
+msgstr "Percentuale utilizzata"
+
+msgid "Data Units Read"
+msgstr "Unità dati lette"
+
+msgid "Data Units Written"
+msgstr "Unità dati scritte"
+
+msgid "Host Read Commands"
+msgstr "Comandi di lettura host"
+
+msgid "Host Write Commands"
+msgstr "Comandi di scrittura host"
+
+msgid "Controller Busy Time"
+msgstr "Tempo di occupazione controller"
+
+msgid "Power Cycles"
+msgstr "Cicli di alimentazione"
+
+msgid "Unsafe Shutdowns"
+msgstr "Arresti non sicuri"
+
+msgid "Media Errors"
+msgstr "Errori del supporto"
+
+msgid "Error Log Entries"
+msgstr "Voci del registro errori"

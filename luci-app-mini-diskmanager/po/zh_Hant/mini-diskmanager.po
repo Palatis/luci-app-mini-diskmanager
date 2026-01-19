@@ -1778,3 +1778,38 @@ msgstr "未用預留區塊總數"
 
 msgid "Available Reserved Space"
 msgstr "可用預留空間"
+
+# NVMe
+
+msgid "Critical Warning"
+msgstr "嚴重警告"
+
+msgid "Percentage Used"
+msgstr "使用百分比"
+
+msgid "Data Units Read"
+msgstr "讀取資料單元"
+
+msgid "Data Units Written"
+msgstr "寫入資料單元"
+
+msgid "Host Read Commands"
+msgstr "主機讀取命令"
+
+msgid "Host Write Commands"
+msgstr "主機寫入命令"
+
+msgid "Controller Busy Time"
+msgstr "控制器忙碌時間"
+
+msgid "Power Cycles"
+msgstr "電源循環"
+
+msgid "Unsafe Shutdowns"
+msgstr "非安全關機"
+
+msgid "Media Errors"
+msgstr "媒體錯誤"
+
+msgid "Error Log Entries"
+msgstr "錯誤日誌條目"

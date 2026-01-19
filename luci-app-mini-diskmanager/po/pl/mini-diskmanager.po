@@ -1217,3 +1217,38 @@ msgstr "Całkowita liczba nieużywanych bloków zarezerwowanych"
 
 msgid "Available Reserved Space"
 msgstr "Dostępna przestrzeń zarezerwowana"
+
+# NVMe
+
+msgid "Critical Warning"
+msgstr "Ostrzeżenie krytyczne"
+
+msgid "Percentage Used"
+msgstr "Procent wykorzystania"
+
+msgid "Data Units Read"
+msgstr "Odczytane jednostki danych"
+
+msgid "Data Units Written"
+msgstr "Zapisane jednostki danych"
+
+msgid "Host Read Commands"
+msgstr "Polecenia odczytu hosta"
+
+msgid "Host Write Commands"
+msgstr "Polecenia zapisu hosta"
+
+msgid "Controller Busy Time"
+msgstr "Czas zajętości kontrolera"
+
+msgid "Power Cycles"
+msgstr "Cykle zasilania"
+
+msgid "Unsafe Shutdowns"
+msgstr "Niebezpieczne wyłączenia"
+
+msgid "Media Errors"
+msgstr "Błędy nośnika"
+
+msgid "Error Log Entries"
+msgstr "Wpisy dziennika błędów"

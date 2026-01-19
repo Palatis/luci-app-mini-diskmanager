@@ -1,3 +1,10 @@
+msgid ""
+msgstr ""
+"luciapplicationsminidiskmanager/fr/>\n"
+"Language: fr\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
 msgid "Disk Manager"
 msgstr "Gestionnaire de disques"
 
@@ -1265,3 +1272,38 @@ msgstr "Nombre total de blocs réservés inutilisés"
 
 msgid "Available Reserved Space"
 msgstr "Espace réservé disponible"
+
+# NVMe
+
+msgid "Critical Warning"
+msgstr "Avertissement critique"
+
+msgid "Percentage Used"
+msgstr "Pourcentage utilisé"
+
+msgid "Data Units Read"
+msgstr "Unités de données lues"
+
+msgid "Data Units Written"
+msgstr "Unités de données écrites"
+
+msgid "Host Read Commands"
+msgstr "Commandes de lecture hôte"
+
+msgid "Host Write Commands"
+msgstr "Commandes d'écriture hôte"
+
+msgid "Controller Busy Time"
+msgstr "Temps d'occupation du contrôleur"
+
+msgid "Power Cycles"
+msgstr "Cycles d'alimentation"
+
+msgid "Unsafe Shutdowns"
+msgstr "Arrêts non sécurisés"
+
+msgid "Media Errors"
+msgstr "Erreurs du support"
+
+msgid "Error Log Entries"
+msgstr "Entrées du journal d'erreurs"

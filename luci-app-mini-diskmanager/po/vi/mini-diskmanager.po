@@ -1,3 +1,13 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: luci-app-mini-diskmanager\n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language: vi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
 msgid "Disk Manager"
 msgstr "Trình quản lý đĩa"
 
@@ -1205,3 +1215,38 @@ msgstr "Tổng số khối dành riêng chưa sử dụng"
 
 msgid "Available Reserved Space"
 msgstr "Không gian dành riêng khả dụng"
+
+# NVMe
+
+msgid "Critical Warning"
+msgstr "Cảnh báo nghiêm trọng"
+
+msgid "Percentage Used"
+msgstr "Phần trăm đã sử dụng"
+
+msgid "Data Units Read"
+msgstr "Đơn vị dữ liệu đã đọc"
+
+msgid "Data Units Written"
+msgstr "Đơn vị dữ liệu đã ghi"
+
+msgid "Host Read Commands"
+msgstr "Lệnh đọc từ máy chủ"
+
+msgid "Host Write Commands"
+msgstr "Lệnh ghi từ máy chủ"
+
+msgid "Controller Busy Time"
+msgstr "Thời gian bộ điều khiển bận"
+
+msgid "Power Cycles"
+msgstr "Chu kỳ nguồn"
+
+msgid "Unsafe Shutdowns"
+msgstr "Tắt máy không an toàn"
+
+msgid "Media Errors"
+msgstr "Lỗi phương tiện"
+
+msgid "Error Log Entries"
+msgstr "Mục nhập nhật ký lỗi"

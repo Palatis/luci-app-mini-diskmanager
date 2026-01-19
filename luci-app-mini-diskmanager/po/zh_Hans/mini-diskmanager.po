@@ -1,3 +1,13 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: luci-app-mini-diskmanager\n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
 msgid "Disk Manager"
 msgstr "磁盘管理器"
 
@@ -1205,3 +1215,38 @@ msgstr "未用预留块总数"
 
 msgid "Available Reserved Space"
 msgstr "可用预留空间"
+
+# NVMe
+
+msgid "Critical Warning"
+msgstr "严重警告"
+
+msgid "Percentage Used"
+msgstr "使用百分比"
+
+msgid "Data Units Read"
+msgstr "读取数据单元"
+
+msgid "Data Units Written"
+msgstr "写入数据单元"
+
+msgid "Host Read Commands"
+msgstr "主机读取命令"
+
+msgid "Host Write Commands"
+msgstr "主机写入命令"
+
+msgid "Controller Busy Time"
+msgstr "控制器忙碌时间"
+
+msgid "Power Cycles"
+msgstr "电源循环"
+
+msgid "Unsafe Shutdowns"
+msgstr "非安全关机"
+
+msgid "Media Errors"
+msgstr "介质错误"
+
+msgid "Error Log Entries"
+msgstr "错误日志条目"
